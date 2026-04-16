@@ -38,7 +38,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useBarStore } from '@/stores/bar'
 import { useCartStore } from '@/stores/cart'
 import { getCategories, getProductList } from '@/api/product'
@@ -74,8 +74,9 @@ const fetchProducts = async () => {
   loading.value = true
   try {
     const data = await getProductList(currentBar.value.id, { categoryId: selectedCategory.value, page: page.value, pageSize })
-    if (page.value === 1) { productList.value = data.list } else { productList.value.push(...data.list) }
-    if (data.list.length < pageSize) { noMore.value = true }
+    const list = data?.list || []
+    if (page.value === 1) { productList.value = list } else { productList.value.push(...list) }
+    if (list.length < pageSize) { noMore.value = true }
   } catch (e) { uni.showToast({ title: '加载失败', icon: 'none' }) } finally { loading.value = false }
 }
 
@@ -83,7 +84,7 @@ const fetchCategories = async () => {
   if (!currentBar.value) return
   try {
     const data = await getCategories(currentBar.value.id)
-    categories.value = data.list || []
+    categories.value = data?.list || []
     if (categories.value.length > 0) { selectedCategory.value = categories.value[0].id }
   } catch (e) { console.error('Fetch categories failed:', e) }
 }

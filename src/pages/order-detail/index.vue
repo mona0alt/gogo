@@ -64,9 +64,9 @@ const handleCancel = async () => {
 const handlePay = () => {}
 
 onMounted(async () => {
-  const pages = getCurrentPages()
+  const pages = getCurrentPages() || []
   const currentPage = pages[pages.length - 1]
-  const id = currentPage.options?.id
+  const id = currentPage?.options?.id
   if (id) { await orderStore.fetchOrderDetail(id) }
 })
 </script>

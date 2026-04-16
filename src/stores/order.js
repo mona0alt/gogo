@@ -19,7 +19,7 @@ export const useOrderStore = defineStore('order', {
         completed: [],
         cancelled: []
       }
-      state.orders.forEach(order => {
+      ;(state.orders || []).forEach(order => {
         groups.all.push(order)
         if (groups[order.status]) {
           groups[order.status].push(order)
@@ -36,7 +36,7 @@ export const useOrderStore = defineStore('order', {
           ...params,
           status: this.filters.status
         })
-        this.orders = data.list || []
+        this.orders = data?.list || []
         return data
       } catch (e) {
         console.error('Fetch order list failed:', e)

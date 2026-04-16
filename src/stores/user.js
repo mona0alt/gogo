@@ -2,11 +2,22 @@ import { defineStore } from 'pinia'
 import { wxLogin, bindPhone, getUserInfo } from '../api/auth'
 import { logout as authLogout } from '../utils/auth'
 
+// Mock 用户数据
+const mockUserInfo = {
+  id: 'u1',
+  nickname: '酒吧爱好者',
+  avatar: '',
+  phone: '138****8888',
+  level: 'VIP会员',
+  balance: 1000,
+  points: 500
+}
+
 export const useUserStore = defineStore('user', {
   state: () => ({
     token: uni.getStorageSync('token') || '',
     userInfo: uni.getStorageSync('userInfo') || null,
-    isLoggedIn: false
+    isLoggedIn: !!uni.getStorageSync('token')
   }),
 
   getters: {

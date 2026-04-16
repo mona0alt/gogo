@@ -32,8 +32,8 @@ const page = ref(1)
 const pageSize = 10
 
 const displayOrders = computed(() => {
-  if (!currentStatus.value) return orderStore.orders
-  return orderStore.orders.filter(o => o.status === currentStatus.value)
+  if (!currentStatus.value) return orderStore.orders || []
+  return (orderStore.orders || []).filter(o => o.status === currentStatus.value)
 })
 
 const switchTab = async (status) => {
@@ -54,8 +54,9 @@ const fetchOrders = async () => {
   loading.value = true
   try {
     const data = await orderStore.fetchOrderList({ page: page.value, pageSize, status: currentStatus.value })
-    if (page.value === 1) { orderStore.orders = data.list } else { orderStore.orders.push(...data.list) }
-    if (data.list.length < pageSize) { noMore.value = true }
+    const list = data?.list || []
+    if (page.value === 1) { orderStore.orders = list } else { orderStore.orders.push(...list) }
+    if (list.length < pageSize) { noMore.value = true }
   } catch (e) { uni.showToast({ title: '加载失败', icon: 'none' }) } finally { loading.value = false }
 }
 

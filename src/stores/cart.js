@@ -9,20 +9,20 @@ export const useCartStore = defineStore('cart', {
   }),
 
   getters: {
-    totalQuantity: (state) => state.items.reduce((sum, item) => sum + item.quantity, 0),
-    totalAmount: (state) => state.items
-      .filter(item => state.checkedItems.includes(item.id))
-      .reduce((sum, item) => sum + item.price * item.quantity, 0),
-    isAllChecked: (state) => state.items.length > 0 && state.checkedItems.length === state.items.length,
-    checkedCartItems: (state) => state.items.filter(item => state.checkedItems.includes(item.id))
+    totalQuantity: (state) => (state.items || []).reduce((sum, item) => sum + (item.quantity || 0), 0),
+    totalAmount: (state) => (state.items || [])
+      .filter(item => (state.checkedItems || []).includes(item.id))
+      .reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0),
+    isAllChecked: (state) => (state.items || []).length > 0 && (state.checkedItems || []).length === (state.items || []).length,
+    checkedCartItems: (state) => (state.items || []).filter(item => (state.checkedItems || []).includes(item.id))
   },
 
   actions: {
     async fetchCartList() {
       try {
         const data = await getCartList()
-        this.items = data.list || []
-        this.barId = data.barId
+        this.items = data?.list || []
+        this.barId = data?.barId
         this.checkedItems = this.items.map(item => item.id)
       } catch (e) {
         console.error('Fetch cart list failed:', e)

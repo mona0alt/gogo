@@ -30,7 +30,7 @@ export const useBarStore = defineStore('bar', {
           category: this.filters.category,
           keyword: this.filters.keyword
         })
-        this.barList = data.list
+        this.barList = data?.list || []
         return data
       } catch (e) {
         console.error('Fetch bar list failed:', e)
@@ -53,7 +53,7 @@ export const useBarStore = defineStore('bar', {
     async fetchNearbyBars(location) {
       try {
         const data = await getNearbyBars(location)
-        this.nearbyBars = data.list
+        this.nearbyBars = data?.list || []
         return data
       } catch (e) {
         console.error('Fetch nearby bars failed:', e)

@@ -13,21 +13,22 @@
     </scroll-view>
     <scroll-view class="bar-list" scroll-y @scrolltolower="loadMore">
       <view class="list-content">
-        <bar-card v-for="bar in barList" :key="bar.id" :bar="bar" />
+        <bar-card v-for="bar in safeBarList" :key="bar.id" :bar="bar" />
       </view>
       <view class="loading" v-if="loading"><text>加载中...</text></view>
-      <view class="no-more" v-if="noMore && barList.length > 0"><text>没有更多了</text></view>
-      <view class="empty" v-if="!loading && barList.length === 0"><text>暂无酒吧</text></view>
+      <view class="no-more" v-if="noMore && safeBarList.length > 0"><text>没有更多了</text></view>
+      <view class="empty" v-if="!loading && safeBarList.length === 0"><text>暂无酒吧</text></view>
     </scroll-view>
   </view>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useBarStore } from '@/stores/bar'
 import barCard from '@/components/bar-card/index.vue'
 
 const barStore = useBarStore()
+const safeBarList = computed(() => barStore.barList || [])
 const categories = ref([
   { id: '', name: '全部' },
   { id: '1', name: '精酿啤酒' },
@@ -68,12 +69,13 @@ const fetchList = async () => {
       pageSize,
       category: selectedCategory.value
     })
+    const list = data?.list || []
     if (page.value === 1) {
-      barStore.barList = data.list
+      barStore.barList = list
     } else {
-      barStore.barList.push(...data.list)
+      barStore.barList.push(...list)
     }
-    if (data.list.length < pageSize) { noMore.value = true }
+    if (list.length < pageSize) { noMore.value = true }
   } catch (e) {
     uni.showToast({ title: '加载失败', icon: 'none' })
   } finally {

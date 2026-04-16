@@ -36,9 +36,9 @@ const handleStoreWine = () => { uni.navigateTo({ url: '/pages/store-wine/index' 
 const goToOrder = () => { barStore.selectBar(bar.value); uni.switchTab({ url: '/pages/order/index' }) }
 
 onMounted(async () => {
-  const pages = getCurrentPages()
+  const pages = getCurrentPages() || []
   const currentPage = pages[pages.length - 1]
-  const id = currentPage.options?.id
+  const id = currentPage?.options?.id
   if (id) {
     try { bar.value = await barStore.fetchBarDetail(id) } catch (e) { uni.showToast({ title: '加载失败', icon: 'none' }) }
   }

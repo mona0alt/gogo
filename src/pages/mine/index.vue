@@ -61,5 +61,5 @@ onMounted(() => {})
 .menu-section .menu-item .icon { font-size: 18px; margin-right: $spacing-md; }
 .menu-section .menu-item .label { flex: 1; color: $text-primary; font-size: $font-md; }
 .menu-section .menu-item .arrow { color: $text-secondary; font-size: 18px; }
-.logout-btn { width: calc(100% - #{$spacing-md * 2}); margin: $spacing-xl $spacing-md 0; height: 44px; background-color: $bg-secondary; color: $error; border-radius: $border-radius-md; display: flex; align-items: center; justify-content: center; font-size: $font-md; }
+.logout-btn { width: calc(100% - #{$spacing-md * 2}); margin: $spacing-xl $spacing-md 0; height: 44px; background-color: $bg-secondary; color: $status-error; border-radius: $border-radius-md; display: flex; align-items: center; justify-content: center; font-size: $font-md; }
 </style>

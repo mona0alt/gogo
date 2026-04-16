@@ -11,24 +11,33 @@
       <view class="info">
         <text class="distance">{{ formatDistance(bar.distance) }}</text>
         <text class="separator">|</text>
-        <text class="minimum">最低消费 ¥{{ bar.minimumSpend }}</text>
+        <text class="minimum">最低消费 ¥{{ bar.minimumSpend || 0 }}</text>
       </view>
-      <view class="tags" v-if="bar.tags && bar.tags.length">
-        <text class="tag-small" v-for="tag in bar.tags.slice(0, 3)" :key="tag">{{ tag }}</text>
+      <view class="tags" v-if="displayTags.length">
+        <text class="tag-small" v-for="tag in displayTags" :key="tag">{{ tag }}</text>
       </view>
     </view>
   </view>
 </template>
 
 <script setup>
+import { computed } from 'vue'
+
 const props = defineProps({
   bar: { type: Object, required: true }
 })
 
+const displayTags = computed(() => {
+  if (!props.bar.tags || !Array.isArray(props.bar.tags)) return []
+  return props.bar.tags.slice(0, 3)
+})
+
 const formatDistance = (distance) => {
   if (!distance) return ''
-  if (distance < 1000) return `${distance}m`
-  return `${(distance / 1000).toFixed(1)}km`
+  if (typeof distance === 'number') {
+    return distance < 1000 ? `${distance}m` : `${(distance / 1000).toFixed(1)}km`
+  }
+  return distance
 }
 
 const goToBarDetail = () => {

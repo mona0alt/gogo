@@ -5,7 +5,7 @@
     </view>
     <view class="section items-section">
       <view class="section-title">商品清单</view>
-      <view class="item" v-for="item in cartStore.checkedCartItems" :key="item.id">
+      <view class="item" v-for="item in safeCheckedItems" :key="item.id">
         <image class="img" :src="item.productImage" mode="aspectFill" />
         <view class="info"><text class="name">{{ item.productName }}</text><text class="specs" v-if="item.specs">{{ item.specs }}</text></view>
         <view class="right"><text class="price">¥{{ item.price }}</text><text class="qty">x{{ item.quantity }}</text></view>
@@ -41,7 +41,9 @@ const currentBar = computed(() => barStore.currentBar)
 const submitting = ref(false)
 const selectedCoupon = ref(null)
 
-const totalAmount = computed(() => cartStore.checkedCartItems.reduce((sum, item) => sum + item.price * item.quantity, 0))
+const safeCheckedItems = computed(() => cartStore.checkedCartItems || [])
+
+const totalAmount = computed(() => (cartStore.checkedCartItems || []).reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0))
 const discountAmount = computed(() => selectedCoupon.value ? selectedCoupon.value.amount : 0)
 const payAmount = computed(() => Math.max(0, totalAmount.value - discountAmount.value))
 
@@ -53,7 +55,7 @@ const handleSubmit = async () => {
   try {
     const orderData = {
       barId: currentBar.value.id,
-      items: cartStore.checkedCartItems.map(item => ({ productId: item.productId, productName: item.productName, productImage: item.productImage, price: item.price, quantity: item.quantity, specs: item.specs })),
+      items: safeCheckedItems.value.map(item => ({ productId: item.productId, productName: item.productName, productImage: item.productImage, price: item.price, quantity: item.quantity, specs: item.specs })),
       totalAmount: totalAmount.value,
       discountAmount: discountAmount.value,
       payAmount: payAmount.value,

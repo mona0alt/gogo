@@ -1,0 +1,59 @@
+// 背景色
+$bg-primary: #1a1a2e;
+$bg-secondary: #252542;
+$bg-card: #2d2d4a;
+$bg-hover: #363656;
+
+// 霓虹强调色
+$neon-pink: #ff2e63;
+$neon-pink-light: #ff5a7e;
+$neon-blue: #08d9d6;
+$neon-blue-light: #4de8e3;
+
+// 渐变
+$gradient-neon: linear-gradient(135deg, $neon-pink, $neon-blue);
+$gradient-dark: linear-gradient(180deg, $bg-primary 0%, $bg-secondary 100%);
+
+// 文字
+$text-primary: #ffffff;
+$text-secondary: #888888;
+$text-disabled: #555555;
+
+// 状态
+$status-open: $neon-blue;
+$status-closed: $text-secondary;
+$status-success: #00d26a;
+$status-warning: #ffb800;
+$status-error: #ff4757;
+
+// 边框
+$border-color: rgba(255, 255, 255, 0.1);
+$border-radius-sm: 4px;
+$border-radius-md: 8px;
+$border-radius-lg: 12px;
+$border-radius-full: 999px;
+
+// 阴影 - 霓虹效果
+$shadow-neon-pink: 0 0 20px rgba($neon-pink, 0.3);
+$shadow-neon-blue: 0 0 20px rgba($neon-blue, 0.3);
+$shadow-card: 0 4px 16px rgba(0, 0, 0, 0.3);
+
+// 间距
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 16px;
+$spacing-lg: 24px;
+$spacing-xl: 32px;
+
+// 字体大小
+$font-xs: 10px;
+$font-sm: 12px;
+$font-md: 14px;
+$font-lg: 16px;
+$font-xl: 18px;
+$font-xxl: 24px;
+$font-title: 32px;
+
+// 动画
+$transition-fast: 0.15s ease;
+$transition-normal: 0.3s ease;

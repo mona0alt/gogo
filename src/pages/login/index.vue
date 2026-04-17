@@ -3,28 +3,32 @@
     <view class="login-header">
       <image class="logo" src="/static/default-bar.png" mode="aspectFit" />
       <text class="app-name">酒吧聚合平台</text>
-      <text class="welcome">欢迎使用酒吧聚合平台</text>
+      <text class="welcome">{{ step === 1 ? '欢迎使用酒吧聚合平台' : '完善您的资料' }}</text>
     </view>
 
     <view class="login-body">
-      <!-- 第一步：获取昵称头像 -->
-      <button
-        v-if="isReady && step === 'profile'"
-        class="login-btn"
-        @click="onLoginClick"
-      >
+      <!-- Step 1: 进入资料填写 -->
+      <button v-if="step === 1" class="login-btn" @tap="onLoginClick">
         微信一键登录
       </button>
 
-      <!-- 第二步：获取手机号（昵称头像授权成功后显示） -->
-      <button
-        v-if="isReady && step === 'phone'"
-        class="login-btn"
-        open-type="getPhoneNumber"
-        @getphonenumber="onGetPhoneNumber"
-      >
-        授权手机号
-      </button>
+      <!-- Step 2: 选择头像和昵称后确认登录 -->
+      <view v-if="step === 2" class="profile-form">
+        <button class="avatar-btn" open-type="chooseAvatar" @chooseavatar="onChooseAvatar">
+          <image class="avatar-preview" :src="tempAvatar || '/static/default-avatar.png'" mode="aspectFill" />
+        </button>
+        <text class="avatar-tip">点击头像选择</text>
+
+        <input
+          class="nickname-input"
+          type="nickname"
+          placeholder="请输入昵称"
+          @blur="onNicknameBlur"
+          @input="onNicknameInput"
+        />
+
+        <button class="login-btn" @tap="onConfirmLogin">确认登录</button>
+      </view>
     </view>
 
     <view class="login-footer">
@@ -35,114 +39,74 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { useUserStore } from '@/stores/user'
 
 const userStore = useUserStore()
-const step = ref('profile') // 'profile' | 'phone'
+const step = ref(1)
 const tempNickname = ref('')
 const tempAvatar = ref('')
-const isReady = ref(false)
 
-onMounted(() => {
-  console.log('Login page mounted')
-  isReady.value = true
-})
-
-// 第一步：获取用户昵称头像
-const onLoginClick = async () => {
-  console.log('onLoginClick called')
-
-  try {
-    console.log('Calling uni.getUserProfile...')
-    const profileRes = await new Promise((resolve, reject) => {
-      uni.getUserProfile({
-        desc: '用于完善用户资料',
-        success: resolve,
-        fail: reject
-      })
-    })
-    console.log('uni.getUserProfile result:', profileRes)
-
-    if (profileRes.errMsg === 'getUserProfile:ok') {
-      tempNickname.value = profileRes.userInfo.nickName
-      tempAvatar.value = profileRes.userInfo.avatarUrl
-      console.log('Got profile, nickname:', tempNickname.value)
-      // 隐藏用户信息，显示手机号授权按钮
-      step.value = 'phone'
-    } else {
-      console.log('User profile failed:', profileRes.errMsg)
-      uni.showToast({ title: '需要授权昵称头像才能继续', icon: 'none' })
-    }
-  } catch (err) {
-    console.error('getUserProfile error:', err)
-    uni.showToast({ title: '获取用户信息失败', icon: 'none' })
-  }
+const onLoginClick = () => {
+  step.value = 2
 }
 
-// 第二步：获取手机号
-const onGetPhoneNumber = async (e) => {
-  console.log('onGetPhoneNumber called', e.detail)
-  if (e.detail.errMsg !== 'getPhoneNumber:ok') {
-    console.log('Phone number not authorized')
-    uni.showToast({ title: '需要授权手机号才能完整使用', icon: 'none' })
+const onChooseAvatar = (e) => {
+  tempAvatar.value = e.detail.avatarUrl || ''
+}
+
+const onNicknameBlur = (e) => {
+  tempNickname.value = e.detail.value || ''
+}
+
+const onNicknameInput = (e) => {
+  tempNickname.value = e.detail.value || ''
+}
+
+const onConfirmLogin = async () => {
+  if (!tempNickname.value.trim()) {
+    uni.showToast({ title: '请输入昵称', icon: 'none' })
     return
   }
 
-  const phoneCode = e.detail.code
-  console.log('Phone code:', phoneCode)
+  uni.showLoading({ title: '登录中...', mask: true })
 
-  // 获取微信 login code
-  uni.showLoading({ title: '登录中...' })
-  console.log('Calling uni.login...')
-
-  let loginRes
   try {
-    loginRes = await new Promise((resolve, reject) => {
-      uni.login({
-        provider: 'weixin',
-        success: resolve,
-        fail: reject
-      })
+    // 1. 获取微信 login code（在确认时调用，避免 code 过期）
+    const loginRes = await new Promise((resolve, reject) => {
+      uni.login({ provider: 'weixin', success: resolve, fail: reject })
     })
-    console.log('uni.login result:', loginRes)
-  } catch (err) {
-    console.error('uni.login error:', err)
-    uni.hideLoading()
-    uni.showToast({ title: '微信登录失败', icon: 'none' })
-    return
-  }
 
-  uni.hideLoading()
-
-  if (loginRes.errMsg !== 'login:ok') {
-    console.log('Login failed:', loginRes.errMsg)
-    uni.showToast({ title: '微信登录失败', icon: 'none' })
-    return
-  }
-
-  try {
-    console.log('Calling loginWithProfile...')
-    // 调用登录云函数（包含昵称头像）
-    const data = await userStore.loginWithProfile(loginRes.code, tempNickname.value, tempAvatar.value)
-    console.log('loginWithProfile result:', data)
-
-    // 绑定手机号
-    if (data.userInfo?.id) {
-      console.log('Binding phone...')
-      await userStore.bindPhone(phoneCode)
+    if (loginRes.errMsg !== 'login:ok') {
+      uni.showToast({ title: '微信登录失败', icon: 'none' })
+      return
     }
 
-    // 登录成功，跳转首页
-    console.log('Login success, redirecting...')
+    // 2. 上传头像到云存储
+    let avatarFileID = ''
+    if (tempAvatar.value) {
+      const uploadRes = await new Promise((resolve, reject) => {
+        wx.cloud.uploadFile({
+          cloudPath: `user-avatars/${Date.now()}.jpg`,
+          filePath: tempAvatar.value,
+          success: resolve,
+          fail: reject
+        })
+      })
+      avatarFileID = uploadRes.fileID
+    }
+
+    // 3. 调用登录接口
+    await userStore.loginWithProfile(loginRes.code, tempNickname.value.trim(), avatarFileID)
     uni.switchTab({ url: '/pages/index/index' })
   } catch (err) {
     console.error('Login failed:', err)
-    uni.showToast({ title: '登录失败，请重试', icon: 'none' })
+    uni.showToast({ title: err.message || '登录失败，请重试', icon: 'none' })
+  } finally {
+    uni.hideLoading()
   }
 }
 
-// 打开用户协议
 const openAgreement = () => {
   uni.showToast({ title: '用户协议页面待创建', icon: 'none' })
 }
@@ -209,6 +173,59 @@ const openAgreement = () => {
 
 button.login-btn {
   background: linear-gradient(135deg, #ff4d4f 0%, #ff6b6b 100%);
+}
+
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.avatar-btn {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 50%;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-btn::after {
+  border: none;
+}
+
+.avatar-preview {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 50%;
+}
+
+.avatar-tip {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 20rpx;
+  margin-bottom: 40rpx;
+}
+
+.nickname-input {
+  width: 100%;
+  height: 96rpx;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 48rpx;
+  padding: 0 40rpx;
+  font-size: 32rpx;
+  color: #ffffff;
+  margin-bottom: 60rpx;
+  box-sizing: border-box;
+}
+
+.nickname-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .login-footer {

@@ -1,4 +1,4 @@
-// 微信登录
+// 微信登录获取 code
 export const wxLogin = () => {
   return new Promise((resolve, reject) => {
     uni.login({
@@ -46,13 +46,14 @@ export const getPhoneNumber = (e) => {
 // 检查登录状态
 export const checkLogin = () => {
   const token = uni.getStorageSync('token')
-  const userInfo = uni.getStorageSync('userInfo')
-  return !!(token && userInfo)
+  const userId = uni.getStorageSync('userId')
+  return !!(token && userId)
 }
 
 // 退出登录
 export const logout = () => {
   uni.removeStorageSync('token')
+  uni.removeStorageSync('userId')
   uni.removeStorageSync('userInfo')
   uni.reLaunch({ url: '/pages/index/index' })
 }

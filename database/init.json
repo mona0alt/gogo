@@ -1,0 +1,74 @@
+{
+  "collections": [
+    {
+      "name": "bars",
+      "indexes": [
+        { "name": "status", "fields": ["status"] },
+        { "name": "category", "fields": ["category"] },
+        { "name": "rating", "fields": ["rating"] }
+      ]
+    },
+    {
+      "name": "categories",
+      "indexes": [
+        { "name": "barId", "fields": ["barId"] }
+      ]
+    },
+    {
+      "name": "products",
+      "indexes": [
+        { "name": "barId", "fields": ["barId"] },
+        { "name": "categoryId", "fields": ["categoryId"] },
+        { "name": "sales", "fields": ["sales"] }
+      ]
+    },
+    {
+      "name": "cart_items",
+      "indexes": [
+        { "name": "userId", "fields": ["userId"] },
+        { "name": "userId_barId", "fields": ["userId", "barId"] }
+      ]
+    },
+    {
+      "name": "orders",
+      "indexes": [
+        { "name": "userId", "fields": ["userId"] },
+        { "name": "barId", "fields": ["barId"] },
+        { "name": "createdAt", "fields": ["createdAt"] }
+      ]
+    },
+    {
+      "name": "users",
+      "indexes": [
+        { "name": "openid", "fields": ["openid"], "unique": true }
+      ]
+    }
+  ],
+  "sampleData": {
+    "bars": [
+      { "name": "深夜酒馆", "category": "1", "categoryName": "精酿啤酒", "address": "朝阳区三里屯路19号", "rating": 4.8, "status": "open", "distance": "1.2km", "price": 68, "tags": ["精酿", "夜生活"], "description": "酒吧环境优雅，音乐氛围好", "openingHours": "18:00-02:00", "minimumSpend": 50 },
+      { "name": "威士忌吧", "category": "3", "categoryName": "威士忌", "address": "海淀区中关村大街", "rating": 4.6, "status": "open", "distance": "2.5km", "price": 88, "tags": ["单一麦芽", "专业"], "description": "专业的威士忌酒吧", "openingHours": "19:00-02:00", "minimumSpend": 80 },
+      { "name": "鸡尾酒廊", "category": "2", "categoryName": "鸡尾酒", "address": "朝阳区工人体育场北路", "rating": 4.9, "status": "open", "distance": "3.1km", "price": 78, "tags": ["创意", "精致"], "description": "创意鸡尾酒专营", "openingHours": "20:00-03:00", "minimumSpend": 60 },
+      { "name": "爵士清吧", "category": "5", "categoryName": "清吧", "address": "东城区鼓楼东大街", "rating": 4.5, "status": "closed", "distance": "4.0km", "price": 58, "tags": ["爵士", "安静"], "description": "安静的爵士乐清吧", "openingHours": "19:00-01:00", "minimumSpend": 40 },
+      { "name": "精酿合作社", "category": "1", "categoryName": "精酿啤酒", "address": "朝阳区望京SOHO", "rating": 4.7, "status": "open", "distance": "5.2km", "price": 55, "tags": ["社交", "精酿"], "description": "年轻人聚集的精酿啤酒吧", "openingHours": "17:00-02:00", "minimumSpend": 50 }
+    ],
+    "categories": [
+      { "name": "啤酒", "barId": "bar1" },
+      { "name": "洋酒", "barId": "bar1" },
+      { "name": "鸡尾酒", "barId": "bar1" },
+      { "name": "软饮", "barId": "bar1" }
+    ],
+    "products": [
+      { "name": "青岛啤酒", "price": 15, "categoryId": "c1", "barId": "bar1", "sales": 100, "stock": 50 },
+      { "name": "百威啤酒", "price": 18, "categoryId": "c1", "barId": "bar1", "sales": 80, "stock": 30 },
+      { "name": "IPA精酿", "price": 35, "categoryId": "c1", "barId": "bar1", "sales": 60, "stock": 20 },
+      { "name": "黑啤", "price": 28, "categoryId": "c1", "barId": "bar1", "sales": 45, "stock": 15 },
+      { "name": "威士忌(杯)", "price": 68, "categoryId": "c2", "barId": "bar1", "sales": 50, "stock": 10 },
+      { "name": "伏特加", "price": 48, "categoryId": "c2", "barId": "bar1", "sales": 40, "stock": 12 },
+      { "name": "莫吉托", "price": 38, "categoryId": "c3", "barId": "bar1", "sales": 70, "stock": 25 },
+      { "name": "马天尼", "price": 42, "categoryId": "c3", "barId": "bar1", "sales": 55, "stock": 18 },
+      { "name": "可乐", "price": 10, "categoryId": "c4", "barId": "bar1", "sales": 90, "stock": 100 },
+      { "name": "雪碧", "price": 10, "categoryId": "c4", "barId": "bar1", "sales": 85, "stock": 100 }
+    ]
+  }
+}

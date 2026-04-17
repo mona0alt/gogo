@@ -1,10 +1,10 @@
-import { post } from '../utils/request'
+import { callCloudFunction } from '../utils/request'
 
-// 微信登录
-export const wxLogin = (code) => post('/api/auth/login', { code })
+// 微信登录 - 获取 openid 并创建/获取用户
+export const wxLogin = (code) => callCloudFunction('login', { code })
 
 // 绑定手机号
-export const bindPhone = (code) => post('/api/auth/bindPhone', { code })
+export const bindPhone = (code) => callCloudFunction('bindPhone', { code })
 
 // 获取用户信息
-export const getUserInfo = () => get('/api/auth/userInfo')
+export const getUserInfo = () => callCloudFunction('getUserInfo', {})

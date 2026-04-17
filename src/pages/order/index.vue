@@ -70,23 +70,46 @@ const loadMore = async () => {
 }
 
 const fetchProducts = async () => {
-  if (!currentBar.value) return
+  if (!currentBar.value || !currentBar.value.id) return
   loading.value = true
   try {
-    const data = await getProductList(currentBar.value.id, { categoryId: selectedCategory.value, page: page.value, pageSize })
+    const data = await getProductList(currentBar.value.id, { categoryId: selectedCategory.value || '', page: page.value, pageSize })
     const list = data?.list || []
-    if (page.value === 1) { productList.value = list } else { productList.value.push(...list) }
+    // 确保 list 每一项都有有效 id
+    productList.value = list.filter(p => p.id).map(p => ({
+      id: p.id,
+      name: p.name || '',
+      price: p.price || 0,
+      image: p.image || '',
+      barId: p.barId || currentBar.value.id,
+      categoryId: p.categoryId || ''
+    }))
     if (list.length < pageSize) { noMore.value = true }
-  } catch (e) { uni.showToast({ title: '加载失败', icon: 'none' }) } finally { loading.value = false }
+  } catch (e) {
+    console.error('Fetch products failed:', e)
+    productList.value = []
+  } finally {
+    loading.value = false
+  }
 }
 
 const fetchCategories = async () => {
-  if (!currentBar.value) return
+  if (!currentBar.value || !currentBar.value.id) return
   try {
     const data = await getCategories(currentBar.value.id)
-    categories.value = data?.list || []
-    if (categories.value.length > 0) { selectedCategory.value = categories.value[0].id }
-  } catch (e) { console.error('Fetch categories failed:', e) }
+    // 确保每项都有有效 id
+    categories.value = (data?.list || []).filter(c => c.id).map(c => ({
+      id: c.id,
+      name: c.name || '',
+      barId: c.barId || currentBar.value.id
+    }))
+    if (categories.value.length > 0 && !selectedCategory.value) {
+      selectedCategory.value = categories.value[0].id
+    }
+  } catch (e) {
+    console.error('Fetch categories failed:', e)
+    categories.value = []
+  }
 }
 
 const handleAddToCart = async (product) => {

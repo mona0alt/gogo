@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { wxLogin as getWxCode, bindPhone, getUserInfo } from '../api/auth'
+import { wxLogin, bindPhone, getUserInfo } from '../api/auth'
 
 export const useUserStore = defineStore('user', {
   state: () => ({
@@ -27,7 +27,27 @@ export const useUserStore = defineStore('user', {
         })
 
         // 调用云函数登录
-        const data = await getWxCode(code)
+        const data = await wxLogin(code)
+        this.token = data.token
+        this.userId = data.userInfo.id
+        this.userInfo = data.userInfo
+        this.isLoggedIn = true
+
+        uni.setStorageSync('token', data.token)
+        uni.setStorageSync('userId', data.userInfo.id)
+        uni.setStorageSync('userInfo', data.userInfo)
+
+        return data
+      } catch (e) {
+        console.error('Login failed:', e)
+        throw e
+      }
+    },
+
+    // 微信登录（带昵称头像）
+    async loginWithProfile(code, nickname, avatar) {
+      try {
+        const data = await wxLogin(code, nickname, avatar)
         this.token = data.token
         this.userId = data.userInfo.id
         this.userInfo = data.userInfo

@@ -1,11 +1,11 @@
 <template>
-  <view class="product-card" @tap="goToProductDetail">
-    <image class="image" :src="product.image || '/static/default-product.png'" mode="aspectFill" />
+  <view class="product-card" @tap="handleTap">
+    <image class="image" :src="getImageUrl()" mode="aspectFill" />
     <view class="info">
-      <text class="name text-ellipsis">{{ product.name }}</text>
+      <text class="name text-ellipsis">{{ product.name || '' }}</text>
       <view class="price-row">
-        <text class="price">¥{{ product.price }}</text>
-        <text class="original" v-if="product.originalPrice > product.price">¥{{ product.originalPrice }}</text>
+        <text class="price">¥{{ product.price || 0 }}</text>
+        <text class="original" v-if="product.originalPrice && product.originalPrice > product.price">¥{{ product.originalPrice }}</text>
       </view>
     </view>
     <view class="add-btn" @tap.stop="handleAddToCart"><text>+</text></view>
@@ -15,8 +15,22 @@
 <script setup>
 const props = defineProps({ product: { type: Object, required: true } })
 const emit = defineEmits(['add-to-cart'])
-const goToProductDetail = () => { uni.navigateTo({ url: `/pages/product-detail/index?id=${props.product.id}` }) }
-const handleAddToCart = () => { emit('add-to-cart', props.product) }
+
+const getImageUrl = () => {
+  const img = props.product.image
+  return img && img.length > 0 ? img : '/static/default-product.png'
+}
+
+const handleTap = () => {
+  const id = props.product.id
+  if (id) {
+    uni.navigateTo({ url: `/pages/product-detail/index?id=${id}` })
+  }
+}
+
+const handleAddToCart = () => {
+  emit('add-to-cart', props.product)
+}
 </script>
 
 <style lang="scss" scoped>

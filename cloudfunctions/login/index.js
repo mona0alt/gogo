@@ -2,7 +2,7 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
 exports.main = async (event, context) => {
-  const { code } = event
+  const { code, nickname, avatar } = event
   const db = cloud.database()
 
   // 微信登录获取 openid
@@ -29,6 +29,12 @@ exports.main = async (event, context) => {
     user._id = _id
   } else {
     user = users.data[0]
+    // 更新现有用户的昵称和头像
+    if (nickname || avatar) {
+      await db.collection('users').doc(user._id).update({
+        data: { nickname, avatar, updatedAt: new Date() }
+      })
+    }
   }
 
   // 生成自定义登录 token

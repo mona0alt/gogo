@@ -59,19 +59,26 @@
       "style": {
         "navigationBarTitleText": "搜索商品"
       }
+    },
+    {
+      "path": "pages/member/index",
+      "style": {
+        "navigationBarTitleText": "会员中心",
+        "navigationStyle": "custom"
+      }
     }
   ],
   "globalStyle": {
-    "navigationBarTextStyle": "black",
+    "navigationBarTextStyle": "white",
     "navigationBarTitleText": "酒吧聚合平台",
-    "navigationBarBackgroundColor": "#F8F8F8",
-    "backgroundColor": "#F8F8F8"
+    "navigationBarBackgroundColor": "#131313",
+    "backgroundColor": "#131313"
   },
   "tabBar": {
-    "color": "#7A7E83",
-    "selectedColor": "#ff4d4f",
+    "color": "#d0c5af",
+    "selectedColor": "#f2ca50",
     "borderStyle": "black",
-    "backgroundColor": "#ffffff",
+    "backgroundColor": "#131313",
     "list": [
       {
         "pagePath": "pages/index/index",

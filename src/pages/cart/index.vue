@@ -63,14 +63,14 @@ const checkout = () => uni.navigateTo({ url: '/pages/checkout/index' })
 
 <style lang="scss" scoped>
 .page { min-height: 100vh; background-color: $bg-primary; display: flex; flex-direction: column; }
-.header { display: flex; justify-content: space-between; align-items: center; padding: $spacing-md; border-bottom: 1px solid $border-color; }
+.header { display: flex; justify-content: space-between; align-items: center; padding: $spacing-md; }
 .header .title { font-size: $font-xl; font-weight: bold; }
-.header .clear { color: $neon-pink; }
+.header .clear { color: $primary; }
 .cart-list { flex: 1; padding: $spacing-md; }
 .empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .empty text { color: $text-secondary; margin-bottom: $spacing-lg; }
-.footer { display: flex; align-items: center; justify-content: space-between; padding: $spacing-md; background-color: $bg-secondary; border-top: 1px solid $border-color; }
+.footer { display: flex; align-items: center; justify-content: space-between; padding: $spacing-md; background-color: $bg-secondary; }
 .footer .total .label { color: $text-secondary; }
-.footer .total .amount { color: $neon-pink; font-size: $font-xl; font-weight: bold; margin-left: $spacing-sm; }
+.footer .total .amount { color: $primary; font-size: $font-xl; font-weight: bold; margin-left: $spacing-sm; }
 .footer .btn { height: 40px; padding: 0 $spacing-xl; }
 </style>

@@ -1,12 +1,13 @@
 {
   "name": "酒吧聚合平台",
-  "appid": "wxe2bf2dbecd72b3ac",
+  "appid": "wxea6875f5c19de652",
   "description": "酒吧聚合平台微信小程序",
   "versionName": "1.0.0",
   "versionCode": "100",
   "transformPx": false,
   "mp-weixin": {
-    "appid": "wxe2bf2dbecd72b3ac",
+    "appid": "wxea6875f5c19de652",
+    "cloudfunctionRoot": "cloudfunctions/",
     "setting": {
       "urlCheck": false,
       "es6": true,

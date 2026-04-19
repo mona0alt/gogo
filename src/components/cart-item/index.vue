@@ -33,16 +33,16 @@ const handleDelete = () => emit('delete', props.item.id)
 <style lang="scss" scoped>
 .cart-item {
   display: flex; align-items: center; padding: $spacing-md; background-color: $bg-secondary; border-radius: $border-radius-md; margin-bottom: $spacing-sm; position: relative;
-  .check { width: 20px; height: 20px; border: 1px solid $border-color; border-radius: 50%; margin-right: $spacing-md; display: flex; align-items: center; justify-content: center; font-size: 12px; color: $neon-pink; }
-  .is-checked .check { background-color: $neon-pink; border-color: $neon-pink; color: white; }
+  .check { width: 20px; height: 20px; border: 1.5px solid rgba($outline-variant, 0.4); border-radius: 50%; margin-right: $spacing-md; display: flex; align-items: center; justify-content: center; font-size: 12px; color: $primary; }
+  .is-checked .check { background-color: $primary; border-color: $primary; color: $on-primary; }
   .image { width: 60px; height: 60px; border-radius: $border-radius-sm; margin-right: $spacing-md; }
   .info { flex: 1; }
   .name { font-size: $font-md; color: $text-primary; display: block; margin-bottom: $spacing-xs; }
   .specs { font-size: $font-xs; color: $text-secondary; display: block; margin-bottom: $spacing-xs; }
   .bottom { display: flex; justify-content: space-between; align-items: center; }
-  .price { color: $neon-pink; font-weight: bold; }
+  .price { color: $primary; font-weight: bold; }
   .quantity { display: flex; align-items: center; gap: $spacing-sm; }
-  .quantity .btn { width: 24px; height: 24px; background-color: $bg-primary; border-radius: $border-radius-sm; display: flex; align-items: center; justify-content: center; font-size: 16px; color: $text-primary; }
+  .quantity .btn { width: 24px; height: 24px; background-color: $bg-dim; border-radius: $border-radius-sm; display: flex; align-items: center; justify-content: center; font-size: 16px; color: $text-primary; }
   .quantity .num { min-width: 20px; text-align: center; color: $text-primary; }
   .delete { position: absolute; right: 0; top: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: $text-secondary; font-size: 20px; }
 }

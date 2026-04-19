@@ -93,19 +93,19 @@ const handleSubmit = async () => {
 .item .right .qty { color: $text-secondary; font-size: $font-sm; display: block; margin-top: 2px; }
 .coupon-section { display: flex; justify-content: space-between; align-items: center; }
 .coupon-section .label { color: $text-primary; font-size: $font-md; }
-.coupon-section .value { display: flex; align-items: center; color: $neon-pink; font-size: $font-md; }
+.coupon-section .value { display: flex; align-items: center; color: $primary; font-size: $font-md; }
 .coupon-section .value .placeholder { color: $text-secondary; }
 .coupon-section .value .arrow { margin-left: $spacing-sm; font-size: 18px; }
 .amount-section .row { display: flex; justify-content: space-between; align-items: center; padding: $spacing-sm 0; }
 .amount-section .row .label { color: $text-secondary; font-size: $font-sm; }
 .amount-section .row .value { color: $text-primary; font-size: $font-sm; }
-.amount-section .row .discount { color: $neon-blue; }
+.amount-section .row .discount { color: $secondary-light; }
 .amount-section .row.total { border-top: 1px solid $border-color; padding-top: $spacing-md; margin-top: $spacing-sm; }
 .amount-section .row.total .label { color: $text-primary; font-size: $font-lg; }
-.amount-section .row.total .value { color: $neon-pink; font-size: $font-xxl; font-weight: bold; }
-.bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: space-between; padding: $spacing-md; padding-bottom: calc(#{$spacing-md} + constant(safe-area-inset-bottom)); background-color: $bg-secondary; border-top: 1px solid $border-color; }
+.amount-section .row.total .value { color: $primary; font-size: $font-xxl; font-weight: bold; }
+.bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: space-between; padding: $spacing-md; padding-bottom: calc(#{$spacing-md} + constant(safe-area-inset-bottom)); background-color: $bg-secondary; }
 .bottom-bar .total { display: flex; align-items: baseline; }
 .bottom-bar .total .label { color: $text-secondary; font-size: $font-sm; margin-right: $spacing-sm; }
-.bottom-bar .total .amount { color: $neon-pink; font-size: $font-xxl; font-weight: bold; }
+.bottom-bar .total .amount { color: $primary; font-size: $font-xxl; font-weight: bold; }
 .bottom-bar .btn { height: 44px; padding: 0 $spacing-xl; }
 </style>

@@ -43,8 +43,8 @@ const handleAddToCart = () => {
   .info { padding: $spacing-sm; }
   .name { font-size: $font-sm; color: $text-primary; margin-bottom: $spacing-xs; display: block; }
   .price-row { display: flex; align-items: baseline; gap: $spacing-sm; }
-  .price { color: $neon-pink; font-size: $font-md; font-weight: bold; }
+  .price { color: $primary; font-size: $font-md; font-weight: bold; }
   .original { color: $text-secondary; font-size: $font-xs; text-decoration: line-through; }
-  .add-btn { position: absolute; right: $spacing-sm; bottom: $spacing-sm; width: 28px; height: 28px; background: $gradient-neon; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: bold; box-shadow: $shadow-neon-pink; }
+  .add-btn { position: absolute; right: $spacing-sm; bottom: $spacing-sm; width: 28px; height: 28px; background: $gradient-neon; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: $on-primary; font-size: 18px; font-weight: bold; box-shadow: $shadow-neon-pink; }
 }
 </style>

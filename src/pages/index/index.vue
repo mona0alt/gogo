@@ -96,7 +96,7 @@ onMounted(() => { fetchList() })
 .search-input .placeholder { color: $text-secondary; font-size: $font-sm; }
 .categories { white-space: nowrap; padding: 0 $spacing-md $spacing-md; }
 .category-item { display: inline-block; padding: $spacing-sm $spacing-lg; margin-right: $spacing-sm; background-color: $bg-secondary; border-radius: $border-radius-full; color: $text-secondary; font-size: $font-sm; }
-.category-item.active { background: $gradient-neon; color: white; }
+.category-item.active { background: $gradient-neon; color: $on-primary; }
 .bar-list { height: calc(100vh - 180px); }
 .list-content { padding: 0 $spacing-md; }
 .loading, .no-more, .empty { text-align: center; padding: $spacing-lg; color: $text-secondary; font-size: $font-sm; }

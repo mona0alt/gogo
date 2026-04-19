@@ -73,15 +73,15 @@ onMounted(async () => {
 
 <style lang="scss" scoped>
 .page { min-height: 100vh; background-color: $bg-primary; padding-bottom: 100px; }
-.status-section { display: flex; flex-direction: column; align-items: center; padding: $spacing-xl; background: $gradient-neon; }
+.status-section { display: flex; flex-direction: column; align-items: center; padding: $spacing-xl; background: linear-gradient(135deg, $primary 0%, $primary-dark 100%); }
 .status-section .status-icon { font-size: 48px; margin-bottom: $spacing-md; }
 .status-section .status-text { color: white; font-size: $font-xl; font-weight: bold; }
 .section { background-color: $bg-secondary; margin-bottom: $spacing-md; padding: $spacing-md; }
 .bar-section { display: flex; flex-direction: column; }
 .bar-section .bar-name { color: $text-primary; font-size: $font-lg; font-weight: bold; }
 .bar-section .bar-address { color: $text-secondary; font-size: $font-sm; margin-top: $spacing-xs; }
-.items-section .item { display: flex; align-items: center; padding: $spacing-sm 0; border-bottom: 1px solid $border-color; }
-.items-section .item:last-child { border-bottom: none; }
+.items-section .item { display: flex; align-items: center; padding: $spacing-sm 0; }
+.items-section .item + .item { border-top: 1px solid $border-color; }
 .items-section .item .img { width: 48px; height: 48px; border-radius: $border-radius-sm; margin-right: $spacing-md; }
 .items-section .item .info { flex: 1; }
 .items-section .item .info .name { color: $text-primary; font-size: $font-md; display: block; }
@@ -95,10 +95,11 @@ onMounted(async () => {
 .amount-section .row { display: flex; justify-content: space-between; padding: $spacing-sm 0; }
 .amount-section .row .label { color: $text-secondary; font-size: $font-sm; }
 .amount-section .row .value { color: $text-primary; font-size: $font-sm; }
-.amount-section .row .discount { color: $neon-blue; }
+.amount-section .row .discount { color: $secondary-light; }
 .amount-section .row.total { border-top: 1px solid $border-color; padding-top: $spacing-md; margin-top: $spacing-sm; }
+.info-section .row + .row { border-top: 1px solid $border-color; }
 .amount-section .row.total .label, .amount-section .row.total .value { color: $text-primary; font-size: $font-lg; font-weight: bold; }
-.amount-section .row.total .value { color: $neon-pink; font-size: $font-xxl; }
-.bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; display: flex; justify-content: flex-end; gap: $spacing-md; padding: $spacing-md; padding-bottom: calc(#{$spacing-md} + constant(safe-area-inset-bottom)); background-color: $bg-secondary; border-top: 1px solid $border-color; }
+.amount-section .row.total .value { color: $primary; font-size: $font-xxl; }
+.bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; display: flex; justify-content: flex-end; gap: $spacing-md; padding: $spacing-md; padding-bottom: calc(#{$spacing-md} + constant(safe-area-inset-bottom)); background-color: $bg-secondary; }
 .bottom-bar .btn { height: 40px; padding: 0 $spacing-lg; }
 </style>

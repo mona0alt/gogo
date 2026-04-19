@@ -38,11 +38,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useBarStore } from '@/stores/bar'
 import { useCartStore } from '@/stores/cart'
 import { getCategories, getProductList } from '@/api/product'
 import productCard from '@/components/product-card/index.vue'
+
+// tabBar 页面缓存后 onMounted 不会再次触发，用 onShow 补充加载
+let onShowHook = null
 
 const barStore = useBarStore()
 const cartStore = useCartStore()
@@ -121,7 +124,30 @@ const goToHome = () => { uni.switchTab({ url: '/pages/index/index' }) }
 const goToCart = () => { uni.navigateTo({ url: '/pages/cart/index' }) }
 const goToProductSearch = () => { uni.navigateTo({ url: '/pages/product-search/index' }) }
 
-onMounted(async () => { if (currentBar.value) { await fetchCategories(); await fetchProducts() } })
+const initData = async () => {
+  if (!currentBar.value) return
+  await fetchCategories()
+  await fetchProducts()
+}
+
+onMounted(() => {
+  initData()
+  // tabBar 页面被缓存后再次进入不会触发 onMounted，需通过 onShow 补充
+  onShowHook = () => { initData() }
+  const pages = getCurrentPages()
+  const thisPage = pages[pages.length - 1]
+  if (thisPage) {
+    const originalOnShow = thisPage.onShow
+    thisPage.onShow = function () {
+      if (originalOnShow) originalOnShow.call(this)
+      if (onShowHook) onShowHook()
+    }
+  }
+})
+
+onUnmounted(() => {
+  onShowHook = null
+})
 </script>
 
 <style lang="scss" scoped>
@@ -129,7 +155,7 @@ onMounted(async () => { if (currentBar.value) { await fetchCategories(); await f
 .bar-header { padding: $spacing-md; background-color: $bg-secondary; }
 .bar-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: $spacing-md; }
 .bar-info .name { font-size: $font-xl; font-weight: bold; color: $text-primary; }
-.bar-info .switch { color: $neon-blue; font-size: $font-sm; }
+.bar-info .switch { color: $primary; font-size: $font-sm; }
 .search-row .search-input { display: flex; align-items: center; height: 36px; padding: 0 $spacing-md; background-color: $bg-primary; border-radius: 18px; }
 .search-row .search-input .icon { margin-right: $spacing-sm; font-size: 12px; }
 .search-row .search-input .placeholder { color: $text-secondary; font-size: $font-sm; }
@@ -138,14 +164,14 @@ onMounted(async () => { if (currentBar.value) { await fetchCategories(); await f
 .content { display: flex; height: calc(100vh - 200px); }
 .categories { width: 80px; background-color: $bg-secondary; }
 .categories .category-item { padding: $spacing-md; text-align: center; color: $text-secondary; font-size: $font-sm; border-left: 3px solid transparent; }
-.categories .category-item.active { background-color: $bg-primary; color: $neon-pink; border-left-color: $neon-pink; }
+.categories .category-item.active { background-color: $bg-primary; color: $primary; border-left-color: $primary; }
 .products { flex: 1; padding: $spacing-md; }
 .products .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: $spacing-md; }
 .products .loading { text-align: center; padding: $spacing-lg; color: $text-secondary; font-size: $font-sm; }
-.cart-float { position: fixed; bottom: 0; left: 0; right: 0; display: flex; align-items: center; padding: $spacing-md; padding-bottom: calc(#{$spacing-md} + constant(safe-area-inset-bottom)); background-color: $bg-secondary; border-top: 1px solid $border-color; }
+.cart-float { position: fixed; bottom: 0; left: 0; right: 0; display: flex; align-items: center; padding: $spacing-md; padding-bottom: calc(#{$spacing-md} + constant(safe-area-inset-bottom)); background-color: $bg-secondary; }
 .cart-float .cart-icon { position: relative; font-size: 24px; margin-right: $spacing-md; }
-.cart-float .cart-icon .badge { position: absolute; top: -8px; right: -8px; min-width: 16px; height: 16px; background-color: $neon-pink; border-radius: 8px; font-size: 10px; color: white; display: flex; align-items: center; justify-content: center; }
+.cart-float .cart-icon .badge { position: absolute; top: -8px; right: -8px; min-width: 16px; height: 16px; background-color: $primary; border-radius: 8px; font-size: 10px; color: $on-primary; display: flex; align-items: center; justify-content: center; }
 .cart-float .cart-info { flex: 1; }
-.cart-float .cart-info .amount { color: $neon-pink; font-size: $font-xl; font-weight: bold; }
+.cart-float .cart-info .amount { color: $primary; font-size: $font-xl; font-weight: bold; }
 .cart-float .btn { height: 40px; padding: 0 $spacing-lg; }
 </style>

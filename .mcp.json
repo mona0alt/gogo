@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "wechat-devtools": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "wechat-devtools-mcp",
+        "--projectPath=/Users/lili/Project/bar_prod/gogo/dist/build/mp-weixin"
+      ]
+    }
+  }
+}

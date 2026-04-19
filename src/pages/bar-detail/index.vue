@@ -53,13 +53,13 @@ onMounted(async () => {
 .info-section .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: $spacing-md; }
 .info-section .name { color: $text-primary; font-size: $font-xxl; font-weight: bold; }
 .info-section .status { padding: $spacing-xs $spacing-sm; border-radius: $border-radius-full; font-size: $font-xs; }
-.info-section .status--open { background-color: rgba($neon-blue, 0.2); color: $neon-blue; }
+.info-section .status--open { background-color: rgba($status-open, 0.15); color: $status-open; }
 .info-section .status--closed { background-color: rgba($text-secondary, 0.2); color: $text-secondary; }
 .info-section .info-row { display: flex; align-items: center; margin-bottom: $spacing-sm; }
 .info-section .info-row .icon { margin-right: $spacing-sm; font-size: 14px; }
 .info-section .info-row .text { color: $text-secondary; font-size: $font-sm; }
 .tags-section { display: flex; flex-wrap: wrap; gap: $spacing-sm; padding: $spacing-md; background-color: $bg-secondary; margin-top: $spacing-md; }
-.tags-section .tag { padding: $spacing-xs $spacing-md; background-color: rgba($neon-pink, 0.1); color: $neon-pink; border-radius: $border-radius-full; font-size: $font-xs; }
-.actions { position: fixed; bottom: 0; left: 0; right: 0; display: flex; gap: $spacing-md; padding: $spacing-md; padding-bottom: calc(#{$spacing-md} + constant(safe-area-inset-bottom)); background-color: $bg-secondary; border-top: 1px solid $border-color; }
+.tags-section .tag { padding: $spacing-xs $spacing-md; background-color: rgba($primary, 0.15); color: $primary; border-radius: $border-radius-full; font-size: $font-xs; }
+.actions { position: fixed; bottom: 0; left: 0; right: 0; display: flex; gap: $spacing-md; padding: $spacing-md; padding-bottom: calc(#{$spacing-md} + constant(safe-area-inset-bottom)); background-color: $bg-secondary; }
 .actions .btn { flex: 1; height: 44px; }
 </style>

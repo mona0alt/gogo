@@ -113,11 +113,13 @@ const openAgreement = () => {
 </script>
 
 <style lang="scss" scoped>
+@import '@/styles/variables.scss';
+
 .login-page {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  background: linear-gradient(180deg, $bg-primary 0%, $bg-secondary 100%);
 }
 
 .login-header {
@@ -133,19 +135,19 @@ const openAgreement = () => {
   width: 160rpx;
   height: 160rpx;
   margin-bottom: 40rpx;
-  border-radius: 20rpx;
+  border-radius: 24rpx;
 }
 
 .app-name {
   font-size: 48rpx;
-  font-weight: bold;
-  color: #ffffff;
+  font-weight: 800;
+  color: $text-primary;
   margin-bottom: 20rpx;
 }
 
 .welcome {
   font-size: 28rpx;
-  color: rgba(255, 255, 255, 0.7);
+  color: $text-secondary;
 }
 
 .login-body {
@@ -155,10 +157,9 @@ const openAgreement = () => {
 .login-btn {
   width: 100%;
   height: 96rpx;
-  background: linear-gradient(135deg, #ff4d4f 0%, #ff6b6b 100%);
   border-radius: 48rpx;
   font-size: 32rpx;
-  color: #ffffff;
+  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -172,7 +173,9 @@ const openAgreement = () => {
 }
 
 button.login-btn {
-  background: linear-gradient(135deg, #ff4d4f 0%, #ff6b6b 100%);
+  background: linear-gradient(135deg, $primary 0%, $primary-dark 100%);
+  color: $on-primary;
+  box-shadow: 0 8px 20px rgba($primary, 0.25);
 }
 
 .profile-form {
@@ -188,7 +191,7 @@ button.login-btn {
   padding: 0;
   margin: 0;
   background: transparent;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  border: 2px solid rgba($outline-variant, 0.4);
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -207,7 +210,7 @@ button.login-btn {
 
 .avatar-tip {
   font-size: 24rpx;
-  color: rgba(255, 255, 255, 0.6);
+  color: $text-secondary;
   margin-top: 20rpx;
   margin-bottom: 40rpx;
 }
@@ -215,17 +218,18 @@ button.login-btn {
 .nickname-input {
   width: 100%;
   height: 96rpx;
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: $bg-dim;
   border-radius: 48rpx;
   padding: 0 40rpx;
   font-size: 32rpx;
-  color: #ffffff;
+  color: $text-primary;
   margin-bottom: 60rpx;
   box-sizing: border-box;
+  border: none;
 }
 
 .nickname-input::placeholder {
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba($text-secondary, 0.6);
 }
 
 .login-footer {
@@ -236,11 +240,11 @@ button.login-btn {
 
 .agreement {
   font-size: 24rpx;
-  color: rgba(255, 255, 255, 0.5);
+  color: $text-secondary;
 }
 
 .link {
   font-size: 24rpx;
-  color: #ff4d4f;
+  color: $primary;
 }
 </style>

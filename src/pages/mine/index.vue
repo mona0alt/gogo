@@ -1,37 +1,133 @@
 <template>
   <view class="page">
+    <!-- 用户信息区 -->
     <view class="user-section">
-      <!--
-        通过 v-if 延迟挂载强制重建 DOM 节点，绕过 uni-app Vue3 在 mp-weixin tabBar 页面
-        onShow 中 setData 不刷新的底层时序 bug。
-      -->
-      <view class="user-info" v-if="showUser" @tap="goToProfile">
-        <image class="avatar" :src="localAvatar" mode="aspectFill" />
-        <view class="info">
-          <text class="nickname">{{ localNickname }}</text>
-          <text class="level" v-if="localIsLogin">会员</text>
+      <view class="user-card" v-if="showUser" @tap="goToProfile">
+        <view class="user-info">
+          <view class="avatar-wrap">
+            <image class="avatar" :src="localAvatar" mode="aspectFill" />
+            <view class="member-tag" v-if="localIsLogin && localMemberLevel">
+              <text class="member-text">{{ localMemberLevel === 'svip' ? 'SVIP' : 'VIP' }}</text>
+            </view>
+          </view>
+          <view class="info">
+            <text class="nickname">{{ localNickname }}</text>
+            <text class="sub-text" v-if="localIsLogin">{{ localMemberLevel ? '尊贵的会员用户' : '普通用户' }}</text>
+            <text class="sub-text" v-else>点击登录</text>
+          </view>
+        </view>
+        <text class="arrow">&#x203A;</text>
+      </view>
+      <view class="user-card" v-else>
+        <view class="user-info">
+          <view class="avatar-wrap">
+            <image class="avatar" src="/static/default-avatar.png" mode="aspectFill" />
+          </view>
+          <view class="info">
+            <text class="nickname">加载中...</text>
+          </view>
         </view>
       </view>
-      <view class="user-info" v-else>
-        <image class="avatar" src="/static/default-avatar.png" mode="aspectFill" />
-        <view class="info">
-          <text class="nickname">加载中...</text>
-        </view>
+    </view>
+
+    <!-- 统计区域 -->
+    <view class="stats-card" v-if="localIsLogin">
+      <view class="stat-item" @tap="goToOrders('all')">
+        <text class="num">{{ stats.orderCount }}</text>
+        <text class="label">订单</text>
       </view>
-      <text class="arrow">›</text>
+      <view class="stat-divider"></view>
+      <view class="stat-item" @tap="goToWineStorage">
+        <text class="num">{{ stats.wineCount }}</text>
+        <text class="label">存酒</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item">
+        <text class="num gold">¥{{ localBalance }}</text>
+        <text class="label">余额</text>
+      </view>
     </view>
-    <view class="stats-section">
-      <view class="stat-item" @tap="goToOrders('all')"><text class="num">{{ stats.orderCount }}</text><text class="label">订单</text></view>
-      <view class="stat-item" @tap="goToWineStorage"><text class="num">{{ stats.wineCount }}</text><text class="label">存酒</text></view>
-      <view class="stat-item"><text class="num">¥{{ localBalance }}</text><text class="label">余额</text></view>
+
+    <!-- 活动轮播 -->
+    <view class="banner-section" v-if="banners.length > 0">
+      <swiper class="banner-swiper" :indicator-dots="false" :autoplay="true" :interval="4000" :duration="500" :circular="true" @change="onBannerChange">
+        <swiper-item v-for="(banner, index) in banners" :key="index" @tap="onBannerTap(banner)">
+          <view class="banner-item">
+            <image class="banner-image" :src="banner.image" mode="aspectFill" />
+            <view class="banner-overlay">
+              <text class="banner-text">{{ banner.title }}</text>
+            </view>
+          </view>
+        </swiper-item>
+      </swiper>
+      <view class="banner-dots">
+        <view v-for="(banner, index) in banners" :key="index" class="dot" :class="{ active: bannerCurrent === index }"></view>
+      </view>
     </view>
+
+    <!-- 菜单区域 -->
     <view class="menu-section">
-      <view class="menu-item" @tap="goToOrders('pending_payment')"><text class="icon">📋</text><text class="label">我的订单</text><text class="arrow">›</text></view>
-      <view class="menu-item" @tap="goToCoupons"><text class="icon">🎫</text><text class="label">优惠券</text><text class="arrow">›</text></view>
-      <view class="menu-item" @tap="goToAddress"><text class="icon">📍</text><text class="label">收货地址</text><text class="arrow">›</text></view>
-      <view class="menu-item" @tap="goToHelp"><text class="icon">❓</text><text class="label">帮助与反馈</text><text class="arrow">›</text></view>
-      <view class="menu-item" @tap="goToAbout"><text class="icon">ℹ️</text><text class="label">关于我们</text><text class="arrow">›</text></view>
+      <view class="menu-group">
+        <view class="menu-item" @tap="goToOrders('pending_payment')">
+          <view class="item-left">
+            <view class="icon-wrap gold">
+              <text class="icon-text">&#x1F4CB;</text>
+            </view>
+            <text class="label">我的订单</text>
+          </view>
+          <text class="arrow">&#x203A;</text>
+        </view>
+        <view class="menu-item" @tap="goToMember">
+          <view class="item-left">
+            <view class="icon-wrap blue">
+              <text class="icon-text">&#x1F48E;</text>
+            </view>
+            <text class="label">会员中心</text>
+          </view>
+          <text class="arrow">&#x203A;</text>
+        </view>
+        <view class="menu-item" @tap="goToCoupons">
+          <view class="item-left">
+            <view class="icon-wrap">
+              <text class="icon-text">&#x1F3AB;</text>
+            </view>
+            <text class="label">优惠券</text>
+          </view>
+          <text class="arrow">&#x203A;</text>
+        </view>
+      </view>
+
+      <view class="menu-group">
+        <view class="menu-item" @tap="goToAddress">
+          <view class="item-left">
+            <view class="icon-wrap">
+              <text class="icon-text">&#x1F4CD;</text>
+            </view>
+            <text class="label">收货地址</text>
+          </view>
+          <text class="arrow">&#x203A;</text>
+        </view>
+        <view class="menu-item" @tap="goToHelp">
+          <view class="item-left">
+            <view class="icon-wrap">
+              <text class="icon-text">&#x2753;</text>
+            </view>
+            <text class="label">帮助与反馈</text>
+          </view>
+          <text class="arrow">&#x203A;</text>
+        </view>
+        <view class="menu-item" @tap="goToAbout">
+          <view class="item-left">
+            <view class="icon-wrap">
+              <text class="icon-text">&#x2139;</text>
+            </view>
+            <text class="label">关于我们</text>
+          </view>
+          <text class="arrow">&#x203A;</text>
+        </view>
+      </view>
     </view>
+
     <button class="logout-btn" v-if="localIsLogin" @tap="handleLogout">退出登录</button>
   </view>
 </template>
@@ -49,11 +145,28 @@ const localAvatar = ref('/static/default-avatar.png')
 const localNickname = ref('未登录')
 const localBalance = ref(0)
 const localIsLogin = ref(false)
+const localMemberLevel = ref('')
 
 let refreshTimer = null
 
+const banners = ref([
+  { image: '/static/default-bar.png', title: '限时特惠活动', url: '' },
+  { image: '/static/default-product.png', title: '新品上线', url: '' },
+  { image: '/static/default-bar.png', title: '会员专享折扣', url: '' }
+])
+const bannerCurrent = ref(0)
+
+const onBannerChange = (e) => {
+  bannerCurrent.value = e.detail.current
+}
+
+const onBannerTap = (banner) => {
+  if (banner.url) {
+    uni.navigateTo({ url: banner.url })
+  }
+}
+
 const refreshView = () => {
-  // 防止 onShow + onTabItemTap 同时触发导致重复刷新
   if (refreshTimer) {
     clearTimeout(refreshTimer)
   }
@@ -74,12 +187,14 @@ const refreshView = () => {
       localNickname.value = storedUserInfo.nickname || '未登录'
       localBalance.value = storedUserInfo.balance || 0
       localIsLogin.value = true
+      localMemberLevel.value = storedUserInfo.memberLevel || ''
     } else {
       const info = userStore.userInfo
       localAvatar.value = info ? (info.avatar || '/static/default-avatar.png') : '/static/default-avatar.png'
       localNickname.value = info ? (info.nickname || '未登录') : '未登录'
       localBalance.value = info ? (info.balance || 0) : 0
       localIsLogin.value = !!info
+      localMemberLevel.value = info?.memberLevel || ''
     }
 
     showUser.value = true
@@ -99,6 +214,7 @@ const goToProfile = () => {
 }
 
 const goToOrders = (status) => { uni.switchTab({ url: '/pages/orders/index' }) }
+const goToMember = () => { uni.navigateTo({ url: '/pages/member/index' }) }
 const goToWineStorage = () => { uni.navigateTo({ url: '/pages/wine-storage/index' }) }
 const goToCoupons = () => { uni.navigateTo({ url: '/pages/coupons/index' }) }
 const goToAddress = () => { uni.navigateTo({ url: '/pages/address/index' }) }
@@ -108,23 +224,282 @@ const handleLogout = () => { uni.showModal({ title: '确认退出', content: '�
 </script>
 
 <style lang="scss" scoped>
-.page { min-height: 100vh; background-color: $bg-primary; padding-bottom: $spacing-xl; }
-.user-section { display: flex; align-items: center; justify-content: space-between; padding: $spacing-xl $spacing-md; background: $gradient-neon; }
-.user-section .user-info { display: flex; align-items: center; }
-.user-section .avatar { width: 60px; height: 60px; border-radius: 50%; margin-right: $spacing-md; border: 2px solid rgba(255, 255, 255, 0.3); }
-.user-section .info { display: flex; flex-direction: column; }
-.user-section .nickname { color: white; font-size: $font-xl; font-weight: bold; }
-.user-section .level { color: rgba(255, 255, 255, 0.8); font-size: $font-xs; margin-top: $spacing-xs; }
-.user-section .arrow { color: white; font-size: 24px; }
-.stats-section { display: flex; background-color: $bg-secondary; padding: $spacing-lg 0; margin-bottom: $spacing-md; }
-.stats-section .stat-item { flex: 1; display: flex; flex-direction: column; align-items: center; }
-.stats-section .num { color: $text-primary; font-size: $font-xxl; font-weight: bold; }
-.stats-section .label { color: $text-secondary; font-size: $font-sm; margin-top: $spacing-xs; }
-.menu-section { background-color: $bg-secondary; }
-.menu-section .menu-item { display: flex; align-items: center; padding: $spacing-md; border-bottom: 1px solid $border-color; }
-.menu-section .menu-item:last-child { border-bottom: none; }
-.menu-section .menu-item .icon { font-size: 18px; margin-right: $spacing-md; }
-.menu-section .menu-item .label { flex: 1; color: $text-primary; font-size: $font-md; }
-.menu-section .menu-item .arrow { color: $text-secondary; font-size: 18px; }
-.logout-btn { width: calc(100% - #{$spacing-md * 2}); margin: $spacing-xl $spacing-md 0; height: 44px; background-color: $bg-secondary; color: $status-error; border-radius: $border-radius-md; display: flex; align-items: center; justify-content: center; font-size: $font-md; }
+.page {
+  min-height: 100vh;
+  background-color: $bg-primary;
+  padding: $spacing-md;
+  padding-bottom: $spacing-xl;
+}
+
+// 用户卡片
+.user-section {
+  margin-bottom: $spacing-md;
+}
+
+.user-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-xl;
+  background-color: $bg-secondary;
+  border-radius: $border-radius-xl;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+}
+
+.avatar-wrap {
+  position: relative;
+  margin-right: $spacing-lg;
+}
+
+.avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 2px solid rgba($primary, 0.3);
+}
+
+.member-tag {
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, $primary 0%, $primary-dark 100%);
+  border-radius: $border-radius-full;
+  padding: 1px 8px;
+}
+
+.member-text {
+  color: $on-primary;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.nickname {
+  color: $text-primary;
+  font-size: $font-xl;
+  font-weight: 700;
+}
+
+.sub-text {
+  color: $text-secondary;
+  font-size: $font-sm;
+}
+
+.arrow {
+  color: $text-secondary;
+  font-size: 24px;
+  font-weight: 300;
+}
+
+// 统计卡片
+.stats-card {
+  display: flex;
+  align-items: center;
+  background-color: $bg-secondary;
+  border-radius: $border-radius-xl;
+  padding: $spacing-lg 0;
+  margin-bottom: $spacing-md;
+}
+
+.stat-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.stat-divider {
+  width: 1px;
+  height: 32px;
+  background-color: $border-color;
+}
+
+.num {
+  color: $text-primary;
+  font-size: $font-xxl;
+  font-weight: 800;
+}
+
+.num.gold {
+  color: $primary;
+}
+
+.label {
+  color: $text-secondary;
+  font-size: $font-sm;
+}
+
+// 菜单区域
+.menu-section {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.menu-group {
+  background-color: $bg-secondary;
+  border-radius: $border-radius-xl;
+  overflow: hidden;
+  padding: 0 $spacing-md;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-md 0;
+}
+
+.menu-item + .menu-item {
+  border-top: 1px solid $border-color;
+}
+
+.item-left {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+}
+
+.icon-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background-color: rgba($text-secondary, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-wrap.gold {
+  background-color: rgba($primary, 0.15);
+}
+
+.icon-wrap.blue {
+  background-color: rgba($secondary-light, 0.15);
+}
+
+.icon-text {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.icon-wrap.gold .icon-text {
+  color: $primary;
+}
+
+.icon-wrap.blue .icon-text {
+  color: $secondary-light;
+}
+
+.menu-item .label {
+  flex: 1;
+  color: $text-primary;
+  font-size: $font-md;
+}
+
+.menu-item .arrow {
+  color: $text-secondary;
+  font-size: 20px;
+  font-weight: 300;
+}
+
+// 活动轮播
+.banner-section {
+  margin-bottom: $spacing-md;
+}
+
+.banner-swiper {
+  height: 120px;
+  border-radius: $border-radius-xl;
+  overflow: hidden;
+}
+
+.banner-item {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.banner-image {
+  width: 100%;
+  height: 100%;
+  opacity: 0.6;
+}
+
+.banner-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60%;
+  background: linear-gradient(to top, rgba($bg-primary, 0.85), transparent);
+  display: flex;
+  align-items: flex-end;
+  padding: $spacing-md;
+}
+
+.banner-text {
+  color: $primary;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.banner-dots {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin-top: $spacing-sm;
+}
+
+.dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: $outline-variant;
+  transition: all 0.3s ease;
+
+  &.active {
+    width: 20px;
+    border-radius: 3px;
+    background-color: $primary;
+  }
+}
+
+// 退出登录
+.logout-btn {
+  width: 100%;
+  margin-top: $spacing-xl;
+  height: 48px;
+  background-color: transparent;
+  color: $status-error;
+  border-radius: $border-radius-full;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-md;
+  border: 1px solid rgba($status-error, 0.3);
+}
+
+.logout-btn::after {
+  border: none;
+}
+
+.logout-btn:active {
+  background-color: rgba($status-error, 0.1);
+}
 </style>

@@ -59,6 +59,6 @@ const goToBarDetail = () => {
   .info { display: flex; align-items: center; color: $text-secondary; font-size: $font-sm; margin-bottom: $spacing-sm; }
   .separator { margin: 0 $spacing-sm; }
   .tags { display: flex; gap: $spacing-xs; }
-  .tag-small { padding: 2px 8px; background-color: rgba($neon-blue, 0.1); color: $neon-blue; border-radius: $border-radius-full; font-size: $font-xs; }
+  .tag-small { padding: 2px 8px; background-color: rgba($primary, 0.15); color: $primary; border-radius: $border-radius-full; font-size: $font-xs; }
 }
 </style>

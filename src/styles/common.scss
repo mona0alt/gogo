@@ -31,26 +31,25 @@ page {
   justify-content: center;
   height: 44px;
   padding: 0 $spacing-lg;
-  border-radius: $border-radius-md;
+  border-radius: $border-radius-full;
   font-size: $font-md;
-  font-weight: 500;
+  font-weight: 600;
   transition: all $transition-fast;
 
   &--primary {
     background: $gradient-neon;
-    color: $text-primary;
+    color: $on-primary;
     box-shadow: $shadow-neon-pink;
 
     &:active {
       opacity: 0.9;
-      transform: scale(0.98);
+      transform: scale(0.97);
     }
   }
 
   &--secondary {
-    background-color: $bg-secondary;
+    background-color: $bg-card;
     color: $text-primary;
-    border: 1px solid $border-color;
 
     &:active {
       background-color: $bg-hover;
@@ -72,9 +71,10 @@ page {
   width: 100%;
   height: 44px;
   padding: 0 $spacing-md;
-  background-color: $bg-secondary;
-  border: 1px solid $border-color;
-  border-radius: $border-radius-md;
+  background-color: $bg-dim;
+  border: none;
+  border-bottom: 1px solid rgba($outline-variant, 0.3);
+  border-radius: $border-radius-sm $border-radius-sm 0 0;
   color: $text-primary;
   font-size: $font-md;
 
@@ -83,14 +83,14 @@ page {
   }
 
   &:focus {
-    border-color: $neon-blue;
+    border-bottom-color: $primary;
     outline: none;
   }
 }
 
 // 价格文字
 .price {
-  color: $neon-pink;
+  color: $primary;
   font-weight: bold;
   font-size: $font-lg;
 
@@ -112,18 +112,18 @@ page {
   font-weight: 500;
 
   &--open {
-    background-color: rgba($neon-blue, 0.2);
-    color: $neon-blue;
+    background-color: rgba($status-open, 0.15);
+    color: $status-open;
   }
 
   &--closed {
-    background-color: rgba($text-secondary, 0.2);
+    background-color: rgba($text-secondary, 0.15);
     color: $text-secondary;
   }
 
   &--pink {
-    background-color: rgba($neon-pink, 0.2);
-    color: $neon-pink;
+    background-color: rgba($primary, 0.15);
+    color: $primary;
   }
 }
 
@@ -152,7 +152,7 @@ page {
   white-space: nowrap;
 }
 
-// 分割线
+// 分割线（Ghost Border 风格）
 .divider {
   height: 1px;
   background-color: $border-color;

@@ -46,15 +46,16 @@ const handlePay = () => {}
 .bar-name { font-size: $font-lg; font-weight: bold; color: $text-primary; }
 .status { font-size: $font-sm; }
 .status--pending_payment { color: $status-warning; }
-.status--pending_use { color: $neon-blue; }
-.status--in_use { color: $neon-pink; }
+.status--pending_use { color: $secondary-light; }
+.status--in_use { color: $primary; }
 .status--completed { color: $status-success; }
 .status--cancelled { color: $text-secondary; }
 .products { display: flex; gap: $spacing-sm; margin-bottom: $spacing-md; }
 .product-img { width: 48px; height: 48px; border-radius: $border-radius-sm; }
 .more { width: 48px; height: 48px; background-color: $bg-primary; border-radius: $border-radius-sm; display: flex; align-items: center; justify-content: center; color: $text-secondary; font-size: $font-sm; }
-.footer { display: flex; justify-content: space-between; align-items: center; padding-top: $spacing-md; border-top: 1px solid $border-color; }
-.amount { color: $neon-pink; font-size: $font-lg; font-weight: bold; }
+.footer { display: flex; justify-content: space-between; align-items: center; padding-top: $spacing-md; }
+.footer::before { content: ''; position: absolute; left: $spacing-md; right: $spacing-md; height: 1px; background-color: $border-color; }
+.amount { color: $primary; font-size: $font-lg; font-weight: bold; }
 .time { color: $text-secondary; font-size: $font-sm; }
 .actions { display: flex; justify-content: flex-end; gap: $spacing-sm; margin-top: $spacing-md; }
 .actions .btn { height: 32px; padding: 0 $spacing-md; font-size: $font-sm; border-radius: $border-radius-md; }

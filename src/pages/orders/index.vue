@@ -67,7 +67,7 @@ onMounted(() => { fetchOrders() })
 .page { min-height: 100vh; background-color: $bg-primary; }
 .status-tabs { display: flex; background-color: $bg-secondary; padding: $spacing-md 0; }
 .status-tabs .tab { flex: 1; text-align: center; color: $text-secondary; font-size: $font-md; padding: $spacing-sm 0; border-bottom: 2px solid transparent; }
-.status-tabs .tab.active { color: $neon-pink; border-bottom-color: $neon-pink; }
+.status-tabs .tab.active { color: $primary; border-bottom-color: $primary; }
 .order-list { height: calc(100vh - 100px); padding: $spacing-md; }
 .loading, .no-more, .empty { text-align: center; padding: $spacing-lg; color: $text-secondary; font-size: $font-sm; }
 .empty { display: flex; flex-direction: column; align-items: center; padding-top: 100px; }

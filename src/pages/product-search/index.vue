@@ -53,7 +53,7 @@ const goBack = () => uni.navigateBack()
 .page { min-height: 100vh; background-color: $bg-primary; }
 .search-bar { display: flex; align-items: center; padding: $spacing-md; background-color: $bg-secondary; }
 .search-input { flex: 1; height: 36px; padding: 0 $spacing-md; background-color: $bg-primary; border-radius: 18px; }
-.cancel { margin-left: $spacing-md; color: $neon-blue; }
+.cancel { margin-left: $spacing-md; color: $primary; }
 .results { height: calc(100vh - 60px); }
 .product-list { display: grid; grid-template-columns: 1fr 1fr; gap: $spacing-md; padding: $spacing-md; }
 .empty { display: flex; align-items: center; justify-content: center; height: 50vh; color: $text-secondary; }

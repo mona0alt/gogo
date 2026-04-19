@@ -1,42 +1,62 @@
-// 背景色
-$bg-primary: #1a1a2e;
-$bg-secondary: #252542;
-$bg-card: #2d2d4a;
-$bg-hover: #363656;
+// ============================================
+// Obsidian Luminance - 黑金设计系统
+// ============================================
 
-// 霓虹强调色
-$neon-pink: #ff2e63;
-$neon-pink-light: #ff5a7e;
-$neon-blue: #08d9d6;
-$neon-blue-light: #4de8e3;
+// 背景色层级（Surface Hierarchy）
+$bg-primary: #131313;           // 页面主背景 surface
+$bg-secondary: #1c1b1b;         // 卡片/区块背景 surface-container-low
+$bg-card: #2a2a2a;              //  elevated card surface-container-high
+$bg-hover: #353534;             // hover/按压态 surface-container-highest
+$bg-dim: #0e0e0e;               // 凹陷区域 surface-container-lowest
+
+// 主色系统 - 金色（Primary）
+$primary: #f2ca50;
+$primary-light: #f9d86e;
+$primary-dark: #d4af37;
+$on-primary: #3c2f00;
+
+// 辅色系统 - 蓝色（Secondary）
+$secondary: #0043eb;
+$secondary-light: #b8c3ff;
+$on-secondary: #c6ceff;
+
+// 兼容旧变量名（逐步迁移中）
+$neon-pink: $primary;
+$neon-pink-light: $primary-light;
+$neon-blue: $secondary;
+$neon-blue-light: $secondary-light;
 
 // 渐变
-$gradient-neon: linear-gradient(135deg, $neon-pink, $neon-blue);
+$gradient-neon: linear-gradient(135deg, $primary 0%, $primary-dark 100%);
 $gradient-dark: linear-gradient(180deg, $bg-primary 0%, $bg-secondary 100%);
 
-// 文字
-$text-primary: #ffffff;
-$text-secondary: #888888;
-$text-disabled: #555555;
+// 文字色
+$text-primary: #e5e2e1;
+$text-secondary: #d0c5af;
+$text-disabled: #666666;
 
-// 状态
-$status-open: $neon-blue;
+// 状态色
+$status-open: #00d26a;
 $status-closed: $text-secondary;
 $status-success: #00d26a;
-$status-warning: #ffb800;
-$status-error: #ff4757;
+$status-warning: $primary;
+$status-error: #ffb4ab;
 
-// 边框
-$border-color: rgba(255, 255, 255, 0.1);
-$border-radius-sm: 4px;
-$border-radius-md: 8px;
-$border-radius-lg: 12px;
+// 边框与分割线（Ghost Border 风格）
+$border-color: rgba(77, 70, 53, 0.15);
+$outline-variant: #4d4635;
+
+// 圆角（更大、更柔和）
+$border-radius-sm: 6px;
+$border-radius-md: 12px;
+$border-radius-lg: 16px;
+$border-radius-xl: 24px;
 $border-radius-full: 999px;
 
-// 阴影 - 霓虹效果
-$shadow-neon-pink: 0 0 20px rgba($neon-pink, 0.3);
-$shadow-neon-blue: 0 0 20px rgba($neon-blue, 0.3);
-$shadow-card: 0 4px 16px rgba(0, 0, 0, 0.3);
+// 阴影
+$shadow-neon-pink: 0 8px 20px rgba($primary, 0.2);
+$shadow-neon-blue: 0 8px 20px rgba($secondary, 0.2);
+$shadow-card: 0 4px 16px rgba(0, 0, 0, 0.4);
 
 // 间距
 $spacing-xs: 4px;

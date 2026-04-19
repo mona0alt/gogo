@@ -3,6 +3,106 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
 const db = cloud.database()
 
+// 测试用户数据（用于配对页面测试）
+const mockUsers = [
+  {
+    openid: 'mock_user_001',
+    nickname: '小雨',
+    avatar: 'cloud://cloud1-d3gjrsyla8bdd9f4a.636c-cloud1-d3gjrsyla8bdd9f4a-1257768256/user-avatars/bar_style_female_1_compressed.jpg',
+    age: 23,
+    gender: 2,
+    height: 165,
+    weight: 48,
+    zodiac: '射手座',
+    bio: '喜欢唱歌、旅游、探店，性格开朗活泼，寻找志同道合的朋友一起玩~',
+    interests: '音乐与旅行',
+    photos: [],
+    profileCompleted: true,
+    createdAt: new Date('2026-01-01'),
+    updatedAt: new Date('2026-01-01')
+  },
+  {
+    openid: 'mock_user_002',
+    nickname: 'Mia',
+    avatar: 'cloud://cloud1-d3gjrsyla8bdd9f4a.636c-cloud1-d3gjrsyla8bdd9f4a-1257768256/user-avatars/bar_style_female_2_compressed.jpg',
+    age: 25,
+    gender: 2,
+    height: 170,
+    weight: 52,
+    zodiac: '天称座',
+    bio: '心理专业本硕毕业，收入算高薪吧。性格比较冷静成熟，属于大家说的姐姐型吧。',
+    interests: '爵士与艺术',
+    photos: [],
+    profileCompleted: true,
+    createdAt: new Date('2026-01-02'),
+    updatedAt: new Date('2026-01-02')
+  },
+  {
+    openid: 'mock_user_003',
+    nickname: '梦梦',
+    avatar: 'cloud://cloud1-d3gjrsyla8bdd9f4a.636c-cloud1-d3gjrsyla8bdd9f4a-1257768256/user-avatars/bar_style_female_3_compressed.jpg',
+    age: 22,
+    gender: 2,
+    height: 158,
+    weight: 45,
+    zodiac: '双鱼座',
+    bio: '实习生，喜欢拍照和美食，每周末都想去探店！',
+    interests: '摄影与美食',
+    photos: [],
+    profileCompleted: true,
+    createdAt: new Date('2026-01-03'),
+    updatedAt: new Date('2026-01-03')
+  },
+  {
+    openid: 'mock_user_004',
+    nickname: 'Elena',
+    avatar: 'cloud://cloud1-d3gjrsyla8bdd9f4a.636c-cloud1-d3gjrsyla8bdd9f4a-1257768256/user-avatars/bar_style_female_4_compressed.jpg',
+    age: 26,
+    gender: 2,
+    height: 168,
+    weight: 50,
+    zodiac: '金牛座',
+    bio: '外企市场经理，工作忙碌但也喜欢下班后的微醤时光。',
+    interests: '红酒与电影',
+    photos: [],
+    profileCompleted: true,
+    createdAt: new Date('2026-01-04'),
+    updatedAt: new Date('2026-01-04')
+  },
+  {
+    openid: 'mock_user_005',
+    nickname: '小北',
+    avatar: 'cloud://cloud1-d3gjrsyla8bdd9f4a.636c-cloud1-d3gjrsyla8bdd9f4a-1257768256/user-avatars/bar_style_male_1_compressed.jpg',
+    age: 24,
+    gender: 1,
+    height: 180,
+    weight: 72,
+    zodiac: '巨蟹座',
+    bio: '程序员，喜欢打篮球和喝精酿，每周五晚必去酒吧放松！',
+    interests: '篮球与精酿',
+    photos: [],
+    profileCompleted: true,
+    createdAt: new Date('2026-01-05'),
+    updatedAt: new Date('2026-01-05')
+  },
+  {
+    openid: 'mock_user_006',
+    nickname: 'Alex',
+    avatar: 'cloud://cloud1-d3gjrsyla8bdd9f4a.636c-cloud1-d3gjrsyla8bdd9f4a-1257768256/user-avatars/bar_style_male_2_compressed.jpg',
+    age: 27,
+    gender: 1,
+    height: 178,
+    weight: 70,
+    zodiac: '天蠇座',
+    bio: '音乐制作人，热爱电子音乐和夜生活，寻找同好一起玩！',
+    interests: 'EDM与派对',
+    photos: [],
+    profileCompleted: true,
+    createdAt: new Date('2026-01-06'),
+    updatedAt: new Date('2026-01-06')
+  }
+]
+
 // 酒吧数据
 const bars = [
   { name: '深夜酒馆', category: '1', categoryName: '精酿啤酒', address: '朝阳区三里屯路19号', rating: 4.8, status: 'open', distance: '1.2km', price: 68, tags: ['精酿', '夜生活'], description: '酒吧环境优雅，音乐氛围好', openingHours: '18:00-02:00', minimumSpend: 50 },
@@ -171,14 +271,15 @@ exports.main = async (event, context) => {
 
   if (action === 'status') {
     try {
-      const [barsRes, categoriesRes, productsRes, ordersRes, groupsRes, groupMatchesRes, followsRes] = await Promise.all([
+      const [barsRes, categoriesRes, productsRes, ordersRes, groupsRes, groupMatchesRes, followsRes, usersRes] = await Promise.all([
         db.collection('bars').count(),
         db.collection('categories').count(),
         db.collection('products').count(),
         db.collection('orders').count(),
         db.collection('groups').count(),
         db.collection('group_matches').count(),
-        db.collection('follows').count()
+        db.collection('follows').count(),
+        db.collection('users').count()
       ])
       return {
         success: true,
@@ -190,11 +291,37 @@ exports.main = async (event, context) => {
           orders: ordersRes.total,
           groups: groupsRes.total,
           groupMatches: groupMatchesRes.total,
-          follows: followsRes.total
+          follows: followsRes.total,
+          users: usersRes.total
         }
       }
     } catch (err) {
       return { success: false, status: 'not_ready', error: err.message }
+    }
+  }
+
+  if (action === 'mockUsers') {
+    try {
+      // 先清空已有 mock 用户
+      const existing = await db.collection('users').where({
+        openid: db.command.in(mockUsers.map(u => u.openid))
+      }).get()
+      for (const user of existing.data) {
+        await db.collection('users').doc(user._id).remove()
+      }
+
+      // 插入 mock 用户
+      for (const user of mockUsers) {
+        await db.collection('users').add({ data: user })
+      }
+
+      return {
+        success: true,
+        message: `已插入 ${mockUsers.length} 条测试用户数据`,
+        inserted: mockUsers.length
+      }
+    } catch (err) {
+      return { success: false, error: err.message }
     }
   }
 

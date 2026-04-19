@@ -25,6 +25,7 @@ exports.main = async (event, context) => {
       nickname: nickname || '',
       avatar: avatar || '',
       phone: '',
+      profileCompleted: false,
       createdAt: now,
       updatedAt: now,
       bars: []

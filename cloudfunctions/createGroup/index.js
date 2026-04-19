@@ -27,7 +27,7 @@ exports.main = async (event, context) => {
     const now = new Date()
     const group = {
       creatorOpenid: openid,
-      targetGender,
+      targetGender: Number(targetGender) || 0,
       barId,
       barName,
       packageType,

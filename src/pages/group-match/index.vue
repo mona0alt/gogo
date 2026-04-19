@@ -16,6 +16,10 @@
           class="user-card"
           v-if="currentUser"
           :class="{ 'swipe-left': swipeDirection === 'left', 'swipe-right': swipeDirection === 'right' }"
+          :style="cardStyle"
+          @touchstart="onTouchStart"
+          @touchmove="onTouchMove"
+          @touchend="onTouchEnd"
         >
           <!-- Photo -->
           <view class="photo-section">
@@ -100,6 +104,11 @@
         <text class="action-icon">&#x2605;</text>
       </view>
     </view>
+
+    <!-- Exit Button -->
+    <view class="exit-bar" v-if="currentUser">
+      <text class="exit-text" @tap="onBack">&#x2190; 退出配对</text>
+    </view>
   </view>
 </template>
 
@@ -114,6 +123,24 @@ const currentIndex = ref(0)
 const loading = ref(false)
 const swipeDirection = ref('')
 const followedUsers = ref(new Set())
+const isProcessing = ref(false)
+
+// Touch drag state
+const touchStartX = ref(0)
+const touchStartY = ref(0)
+const dragOffsetX = ref(0)
+const isDragging = ref(false)
+
+const cardStyle = computed(() => {
+  if (dragOffsetX.value === 0) return {}
+  const rotate = dragOffsetX.value * 0.04
+  const opacity = Math.max(0.5, 1 - Math.abs(dragOffsetX.value) / 600)
+  return {
+    transform: `translateX(${dragOffsetX.value}px) rotate(${rotate}deg)`,
+    opacity,
+    transition: isDragging.value ? 'none' : 'transform 0.15s ease, opacity 0.15s ease'
+  }
+})
 
 const currentUser = computed(() => {
   if (currentIndex.value >= userList.value.length) return null
@@ -157,24 +184,29 @@ const fetchRecommendUsers = async () => {
 
 const goToNext = () => {
   swipeDirection.value = ''
+  dragOffsetX.value = 0
   currentIndex.value++
   if (currentIndex.value >= userList.value.length) {
     // Try to load more
     fetchRecommendUsers()
   }
+  isProcessing.value = false
 }
 
 const onSkip = () => {
+  if (isProcessing.value) return
+  isProcessing.value = true
   swipeDirection.value = 'left'
   setTimeout(goToNext, 300)
 }
 
 const onLike = async () => {
-  if (!currentUser.value) return
+  if (!currentUser.value || isProcessing.value) return
 
   const gid = groupId.value || uni.getStorageSync('currentGroupId')
   if (!gid) return
 
+  isProcessing.value = true
   uni.showLoading({ title: '发送中...', mask: true })
 
   try {
@@ -193,6 +225,7 @@ const onLike = async () => {
     setTimeout(goToNext, 800)
   } catch (e) {
     uni.showToast({ title: e.message || '发送失败', icon: 'none' })
+    isProcessing.value = false
   } finally {
     uni.hideLoading()
   }
@@ -215,6 +248,54 @@ const onStar = async () => {
     }
   } catch (e) {
     uni.showToast({ title: e.message || '操作失败', icon: 'none' })
+  }
+}
+
+// Touch handlers for card swipe
+const onTouchStart = (e) => {
+  touchStartX.value = e.touches[0].clientX
+  touchStartY.value = e.touches[0].clientY
+  dragOffsetX.value = 0
+  isDragging.value = true
+}
+
+const onTouchMove = (e) => {
+  if (!isDragging.value) return
+  const currentX = e.touches[0].clientX
+  const currentY = e.touches[0].clientY
+  const deltaX = currentX - touchStartX.value
+  const deltaY = currentY - touchStartY.value
+
+  // Ignore vertical scroll gestures
+  if (Math.abs(deltaY) > Math.abs(deltaX)) {
+    isDragging.value = false
+    dragOffsetX.value = 0
+    return
+  }
+
+  dragOffsetX.value = deltaX
+}
+
+const onTouchEnd = () => {
+  if (!isDragging.value || isProcessing.value) {
+    isDragging.value = false
+    dragOffsetX.value = 0
+    return
+  }
+  isDragging.value = false
+  const threshold = 100
+
+  if (dragOffsetX.value > threshold) {
+    // Swipe right -> like
+    dragOffsetX.value = 0
+    onLike()
+  } else if (dragOffsetX.value < -threshold) {
+    // Swipe left -> skip
+    dragOffsetX.value = 0
+    onSkip()
+  } else {
+    // Snap back
+    dragOffsetX.value = 0
   }
 }
 
@@ -321,15 +402,19 @@ onMounted(() => {
   opacity: 0;
 }
 
-/* Photo Section */
+/* Photo Section - use padding-top instead of aspect-ratio for compatibility */
 .photo-section {
   position: relative;
   width: 100%;
-  aspect-ratio: 4/5;
+  height: 0;
+  padding-top: 125%; /* 4:5 aspect ratio = 5/4 * 100% */
   overflow: hidden;
 }
 
 .user-photo {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
 }
@@ -582,6 +667,29 @@ onMounted(() => {
 
 .action-btn.star.active .action-icon {
   color: $primary;
+}
+
+/* Exit Bar */
+.exit-bar {
+  position: fixed;
+  bottom: 24rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+}
+
+.exit-text {
+  font-size: 24rpx;
+  color: $text-secondary;
+  letter-spacing: 0.1em;
+  padding: 12rpx 32rpx;
+  border-radius: $border-radius-full;
+  transition: all 0.2s ease;
+}
+
+.exit-text:active {
+  color: $text-primary;
+  background: rgba($outline-variant, 0.1);
 }
 
 @keyframes pulse {

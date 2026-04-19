@@ -35,7 +35,8 @@ exports.main = async (event, context) => {
   }
 
   if (group.targetGender) {
-    where.gender = group.targetGender
+    const tg = Number(group.targetGender)
+    where.gender = tg
   }
 
   const users = await db.collection('users')
@@ -43,17 +44,59 @@ exports.main = async (event, context) => {
     .limit(limit)
     .get()
 
+  // Collect all cloud:// fileIDs for batch conversion
+  const fileIdSet = new Set()
+  users.data.forEach(u => {
+    if (u.avatar && u.avatar.startsWith('cloud://')) {
+      fileIdSet.add(u.avatar)
+    }
+    if (u.photos && Array.isArray(u.photos)) {
+      u.photos.forEach(p => {
+        if (p && p.startsWith('cloud://')) {
+          fileIdSet.add(p)
+        }
+      })
+    }
+  })
+
+  // Batch convert cloud:// fileIDs to https URLs
+  const fileIdList = Array.from(fileIdSet)
+  let urlMap = {}
+  if (fileIdList.length > 0) {
+    try {
+      const tempRes = await cloud.getTempFileURL({
+        fileList: fileIdList
+      })
+      tempRes.fileList.forEach(item => {
+        if (item.fileID && item.tempFileURL) {
+          urlMap[item.fileID] = item.tempFileURL
+        }
+      })
+    } catch (e) {
+      console.error('getTempFileURL error:', e)
+    }
+  }
+
+  const resolveUrl = (fileId) => {
+    if (!fileId) return ''
+    if (fileId.startsWith('cloud://')) {
+      return urlMap[fileId] || ''
+    }
+    return fileId
+  }
+
   const list = users.data.map(u => ({
     openid: u.openid,
     nickname: u.nickname || '匿名用户',
-    avatar: u.avatar || '',
+    avatar: resolveUrl(u.avatar),
     age: u.age || 0,
     gender: u.gender || 0,
     height: u.height || 0,
     weight: u.weight || 0,
     zodiac: u.zodiac || '',
     bio: u.bio || '',
-    photos: u.photos || []
+    interests: u.interests || '',
+    photos: (u.photos || []).map(resolveUrl)
   }))
 
   return { list }

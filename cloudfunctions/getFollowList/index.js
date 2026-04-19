@@ -36,13 +36,19 @@ exports.main = async (event, context) => {
 
   // Enrich with user info
   const list = []
+  const fileIdSet = new Set()
+
   for (const f of follows) {
     const userRes = await db.collection('users').where({ openid: f.followingOpenid }).get()
     const user = userRes.data[0] || {}
+    if (user.avatar && user.avatar.startsWith('cloud://')) {
+      fileIdSet.add(user.avatar)
+    }
     list.push({
       _id: f._id,
       openid: f.followingOpenid,
       createdAt: f.createdAt,
+      rawAvatar: user.avatar || '',
       userInfo: {
         nickname: user.nickname || '匿名用户',
         avatar: user.avatar || '',
@@ -52,6 +58,32 @@ exports.main = async (event, context) => {
       }
     })
   }
+
+  // Batch convert cloud:// fileIDs to https URLs
+  const fileIdList = Array.from(fileIdSet)
+  let urlMap = {}
+  if (fileIdList.length > 0) {
+    try {
+      const tempRes = await cloud.getTempFileURL({
+        fileList: fileIdList
+      })
+      tempRes.fileList.forEach(item => {
+        if (item.fileID && item.tempFileURL) {
+          urlMap[item.fileID] = item.tempFileURL
+        }
+      })
+    } catch (e) {
+      console.error('getTempFileURL error:', e)
+    }
+  }
+
+  // Replace avatars with https URLs
+  list.forEach(item => {
+    if (item.rawAvatar && item.rawAvatar.startsWith('cloud://')) {
+      item.userInfo.avatar = urlMap[item.rawAvatar] || ''
+    }
+    delete item.rawAvatar
+  })
 
   return {
     list,

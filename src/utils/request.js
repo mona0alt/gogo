@@ -23,7 +23,6 @@ export const callCloudFunction = (name, data = {}) => {
       },
       fail: (err) => {
         console.error('Cloud function fail:', err)
-        wx.showToast({ title: '网络错误', icon: 'none' })
         reject(err)
       }
     })

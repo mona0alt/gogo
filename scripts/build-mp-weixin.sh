@@ -28,7 +28,7 @@ fi
 echo ""
 echo "📝 更新配置文件..."
 # 更新 manifest.json 中的 appid
-sed -i "s/\"appid\": \"[^\"]*\"/\"appid\": \"$APP_ID\"/g" src/manifest.json
+sed -i '' "s/\"appid\": \"[^\"]*\"/\"appid\": \"$APP_ID\"/g" src/manifest.json
 echo "   - AppID: $APP_ID"
 
 echo ""

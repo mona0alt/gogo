@@ -32,7 +32,7 @@ import { ref, computed } from 'vue'
 import { useCartStore } from '@/stores/cart'
 import { useBarStore } from '@/stores/bar'
 import { useOrderStore } from '@/stores/order'
-import { getWxPayParams } from '@/api/order'
+import { payOrder } from '@/api/order'
 
 const cartStore = useCartStore()
 const barStore = useBarStore()
@@ -62,10 +62,7 @@ const handleSubmit = async () => {
       couponId: selectedCoupon.value?.id
     }
     const order = await orderStore.createOrder(orderData)
-    const payParams = await getWxPayParams(order.id)
-    await new Promise((resolve, reject) => {
-      uni.requestPayment({ ...payParams, success: () => resolve(), fail: (err) => reject(new Error(err.errMsg || '支付失败')) })
-    })
+    await payOrder(order.id)
     await cartStore.clearCart()
     uni.redirectTo({ url: `/pages/order-detail/index?id=${order.id}&status=success` })
   } catch (e) {

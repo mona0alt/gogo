@@ -4,7 +4,7 @@
       <view v-for="tab in tabs" :key="tab.value" class="tab" :class="{ active: currentStatus === tab.value }" @tap="switchTab(tab.value)">{{ tab.label }}</view>
     </view>
     <scroll-view class="order-list" scroll-y @scrolltolower="loadMore">
-      <order-card v-for="order in displayOrders" :key="order.id" :order="order" />
+      <order-card v-for="order in displayOrders" :key="order.id" :order="order" @refresh="fetchOrders" />
       <view class="loading" v-if="loading"><text>加载中...</text></view>
       <view class="no-more" v-if="noMore && displayOrders.length > 0"><text>没有更多了</text></view>
       <view class="empty" v-if="!loading && displayOrders.length === 0"><text class="icon">📋</text><text class="text">暂无订单</text></view>

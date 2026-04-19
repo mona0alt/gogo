@@ -7,6 +7,13 @@
       }
     },
     {
+      "path": "pages/profile-setup/index",
+      "style": {
+        "navigationBarTitleText": "完善资料",
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/index/index",
       "style": {
         "navigationBarTitleText": "首页"
@@ -66,6 +73,76 @@
         "navigationBarTitleText": "会员中心",
         "navigationStyle": "custom"
       }
+    },
+    {
+      "path": "pages/hall/index",
+      "style": {
+        "navigationBarTitleText": "拼桌大厅",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/hall-detail/index",
+      "style": {
+        "navigationBarTitleText": "拼桌详情",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/hall-create/index",
+      "style": {
+        "navigationBarTitleText": "发布拼团",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/following/index",
+      "style": {
+        "navigationBarTitleText": "关注",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/group-gender/index",
+      "style": {
+        "navigationBarTitleText": "选择性别",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/group-time/index",
+      "style": {
+        "navigationBarTitleText": "选择时间",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/group-bar/index",
+      "style": {
+        "navigationBarTitleText": "选择酒吧",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/group-match/index",
+      "style": {
+        "navigationBarTitleText": "配对",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/group-status/index",
+      "style": {
+        "navigationBarTitleText": "状态",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/match-invites/index",
+      "style": {
+        "navigationBarTitleText": "邀请我的",
+        "navigationStyle": "custom"
+      }
     }
   ],
   "globalStyle": {
@@ -87,16 +164,16 @@
         "selectedIconPath": "static/tabbar/home-active.png"
       },
       {
-        "pagePath": "pages/order/index",
-        "text": "点单",
-        "iconPath": "static/tabbar/order.png",
-        "selectedIconPath": "static/tabbar/order-active.png"
+        "pagePath": "pages/hall/index",
+        "text": "大厅",
+        "iconPath": "static/tabbar/hall.png",
+        "selectedIconPath": "static/tabbar/hall-active.png"
       },
       {
-        "pagePath": "pages/orders/index",
-        "text": "订单",
-        "iconPath": "static/tabbar/orders.png",
-        "selectedIconPath": "static/tabbar/orders-active.png"
+        "pagePath": "pages/following/index",
+        "text": "关注",
+        "iconPath": "static/tabbar/following.png",
+        "selectedIconPath": "static/tabbar/following-active.png"
       },
       {
         "pagePath": "pages/mine/index",

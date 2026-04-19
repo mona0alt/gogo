@@ -5,7 +5,7 @@
       <view class="user-card" v-if="showUser" @tap="goToProfile">
         <view class="user-info">
           <view class="avatar-wrap">
-            <image class="avatar" :src="localAvatar" mode="aspectFill" />
+            <image class="avatar" :src="localAvatar" mode="aspectFill" @error="localAvatar = '/static/default-avatar.png'" />
             <view class="member-tag" v-if="localIsLogin && localMemberLevel">
               <text class="member-text">{{ localMemberLevel === 'svip' ? 'SVIP' : 'VIP' }}</text>
             </view>
@@ -68,6 +68,18 @@
     <!-- 菜单区域 -->
     <view class="menu-section">
       <view class="menu-group">
+        <view class="menu-item" @tap="goToInvites">
+          <view class="item-left">
+            <view class="icon-wrap pink">
+              <text class="icon-text">&#x1F48C;</text>
+            </view>
+            <text class="label">邀请我的</text>
+            <view class="badge" v-if="inviteCount > 0">
+              <text class="badge-text">{{ inviteCount }}</text>
+            </view>
+          </view>
+          <text class="arrow">&#x203A;</text>
+        </view>
         <view class="menu-item" @tap="goToOrders('pending_payment')">
           <view class="item-left">
             <view class="icon-wrap gold">
@@ -136,6 +148,7 @@
 import { ref } from 'vue'
 import { onShow, onTabItemTap } from '@dcloudio/uni-app'
 import { useUserStore } from '@/stores/user'
+import { callCloudFunction } from '@/utils/request'
 
 const userStore = useUserStore()
 const stats = { orderCount: 0, wineCount: 0 }
@@ -146,6 +159,7 @@ const localNickname = ref('未登录')
 const localBalance = ref(0)
 const localIsLogin = ref(false)
 const localMemberLevel = ref('')
+const inviteCount = ref(0)
 
 let refreshTimer = null
 
@@ -188,6 +202,9 @@ const refreshView = () => {
       localBalance.value = storedUserInfo.balance || 0
       localIsLogin.value = true
       localMemberLevel.value = storedUserInfo.memberLevel || ''
+
+      // Fetch invite count
+      fetchInviteCount()
     } else {
       const info = userStore.userInfo
       localAvatar.value = info ? (info.avatar || '/static/default-avatar.png') : '/static/default-avatar.png'
@@ -202,6 +219,15 @@ const refreshView = () => {
   }, 500)
 }
 
+const fetchInviteCount = async () => {
+  try {
+    const res = await callCloudFunction('getMatchInvites', { status: 'pending', page: 1, pageSize: 1 })
+    inviteCount.value = res.total || 0
+  } catch (e) {
+    // ignore
+  }
+}
+
 onShow(refreshView)
 onTabItemTap(refreshView)
 
@@ -213,7 +239,8 @@ const goToProfile = () => {
   }
 }
 
-const goToOrders = (status) => { uni.switchTab({ url: '/pages/orders/index' }) }
+const goToOrders = (status) => { uni.navigateTo({ url: '/pages/orders/index' }) }
+const goToInvites = () => { uni.navigateTo({ url: '/pages/match-invites/index' }) }
 const goToMember = () => { uni.navigateTo({ url: '/pages/member/index' }) }
 const goToWineStorage = () => { uni.navigateTo({ url: '/pages/wine-storage/index' }) }
 const goToCoupons = () => { uni.navigateTo({ url: '/pages/coupons/index' }) }
@@ -388,6 +415,32 @@ const handleLogout = () => { uni.showModal({ title: '确认退出', content: '�
 
 .icon-wrap.blue {
   background-color: rgba($secondary-light, 0.15);
+}
+
+.icon-wrap.pink {
+  background-color: rgba(255, 107, 157, 0.15);
+}
+
+.icon-wrap.pink .icon-text {
+  color: #ff6b9d;
+}
+
+.badge {
+  margin-left: 8rpx;
+  min-width: 32rpx;
+  height: 32rpx;
+  background: #ff4d4f;
+  border-radius: 16rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10rpx;
+}
+
+.badge-text {
+  font-size: 20rpx;
+  color: #fff;
+  font-weight: bold;
 }
 
 .icon-text {

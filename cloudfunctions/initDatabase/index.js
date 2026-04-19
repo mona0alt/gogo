@@ -34,8 +34,32 @@ const productsTemplate = [
   { name: '雪碧', price: 10, categoryIndex: 3, sales: 85, stock: 100 }
 ]
 
+// 确保集合存在（微信云开发：向不存在的集合 add 会自动创建集合）
+async function ensureCollection(name) {
+  try {
+    const res = await db.collection(name).add({ data: { _temp: true, createdAt: new Date() } })
+    await db.collection(name).doc(res._id).remove()
+    return { created: true }
+  } catch (e) {
+    return { created: false, error: e.message }
+  }
+}
+
 exports.main = async (event, context) => {
   const { action } = event
+
+  if (action === 'ensureCollections') {
+    const results = await Promise.all([
+      ensureCollection('groups'),
+      ensureCollection('group_matches'),
+      ensureCollection('follows')
+    ])
+    return {
+      success: true,
+      message: '集合检查完成',
+      results: { groups: results[0], group_matches: results[1], follows: results[2] }
+    }
+  }
 
   if (action === 'init') {
     // 清空现有数据
@@ -45,7 +69,10 @@ exports.main = async (event, context) => {
         db.collection('categories').where({}).remove(),
         db.collection('products').where({}).remove(),
         db.collection('orders').where({}).remove(),
-        db.collection('cart_items').where({}).remove()
+        db.collection('cart_items').where({}).remove(),
+        db.collection('groups').where({}).remove(),
+        db.collection('group_matches').where({}).remove(),
+        db.collection('follows').where({}).remove()
       ])
     } catch (e) {
       // 忽略错误
@@ -131,7 +158,10 @@ exports.main = async (event, context) => {
         db.collection('categories').where({}).remove(),
         db.collection('products').where({}).remove(),
         db.collection('orders').where({}).remove(),
-        db.collection('cart_items').where({}).remove()
+        db.collection('cart_items').where({}).remove(),
+        db.collection('groups').where({}).remove(),
+        db.collection('group_matches').where({}).remove(),
+        db.collection('follows').where({}).remove()
       ])
       return { success: true, message: '数据库已清空' }
     } catch (err) {
@@ -141,11 +171,14 @@ exports.main = async (event, context) => {
 
   if (action === 'status') {
     try {
-      const [barsRes, categoriesRes, productsRes, ordersRes] = await Promise.all([
+      const [barsRes, categoriesRes, productsRes, ordersRes, groupsRes, groupMatchesRes, followsRes] = await Promise.all([
         db.collection('bars').count(),
         db.collection('categories').count(),
         db.collection('products').count(),
-        db.collection('orders').count()
+        db.collection('orders').count(),
+        db.collection('groups').count(),
+        db.collection('group_matches').count(),
+        db.collection('follows').count()
       ])
       return {
         success: true,
@@ -154,7 +187,10 @@ exports.main = async (event, context) => {
           bars: barsRes.total,
           categories: categoriesRes.total,
           products: productsRes.total,
-          orders: ordersRes.total
+          orders: ordersRes.total,
+          groups: groupsRes.total,
+          groupMatches: groupMatchesRes.total,
+          follows: followsRes.total
         }
       }
     } catch (err) {

@@ -35,6 +35,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useOrderStore } from '@/stores/order'
+import { payOrder } from '@/api/order'
 
 const orderStore = useOrderStore()
 const order = computed(() => orderStore.currentOrder)
@@ -61,7 +62,15 @@ const formatDateTime = (time) => {
 const handleCancel = async () => {
   uni.showModal({ title: '确认取消', content: '确定要取消该订单吗？', success: async (res) => { if (res.confirm) { await orderStore.cancelOrderById(order.value.id); uni.showToast({ title: '已取消', icon: 'success' }) } } })
 }
-const handlePay = () => {}
+const handlePay = async () => {
+  try {
+    await payOrder(order.value.id)
+    uni.showToast({ title: '支付成功', icon: 'success' })
+    orderStore.fetchOrderDetail(order.value.id)
+  } catch (e) {
+    uni.showToast({ title: e.message || '支付失败', icon: 'none' })
+  }
+}
 
 onMounted(async () => {
   const pages = getCurrentPages() || []

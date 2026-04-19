@@ -13,7 +13,7 @@
       <!-- 1. 用户信息区 -->
       <view class="user-section">
         <view class="watermark">VIP</view>
-        <image class="avatar" :src="userAvatar" mode="aspectFill" />
+        <image class="avatar" :src="userAvatar" mode="aspectFill" @error="userAvatar = '/static/default-avatar.png'" />
         <view class="user-info">
           <text class="nickname">{{ userNickname }}</text>
           <view class="member-badge" v-if="currentLevel">

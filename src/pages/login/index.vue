@@ -97,8 +97,14 @@ const onConfirmLogin = async () => {
     }
 
     // 3. 调用登录接口
-    await userStore.loginWithProfile(loginRes.code, tempNickname.value.trim(), avatarFileID)
-    uni.switchTab({ url: '/pages/index/index' })
+    const loginData = await userStore.loginWithProfile(loginRes.code, tempNickname.value.trim(), avatarFileID)
+
+    // 4. 判断是否已完善资料
+    if (loginData.userInfo && !loginData.userInfo.profileCompleted) {
+      uni.navigateTo({ url: '/pages/profile-setup/index' })
+    } else {
+      uni.switchTab({ url: '/pages/index/index' })
+    }
   } catch (err) {
     console.error('Login failed:', err)
     uni.showToast({ title: err.message || '登录失败，请重试', icon: 'none' })

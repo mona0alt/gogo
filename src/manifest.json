@@ -8,6 +8,7 @@
   "mp-weixin": {
     "appid": "wxea6875f5c19de652",
     "cloudfunctionRoot": "cloudfunctions/",
+    "lazyCodeLoading": "requiredComponents",
     "setting": {
       "urlCheck": false,
       "es6": true,

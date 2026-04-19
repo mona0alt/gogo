@@ -48,5 +48,21 @@ exports.main = async (event, context) => {
   // 生成自定义登录 token
   const token = Buffer.from(JSON.stringify({ openid, timestamp: Date.now() })).toString('base64')
 
-  return { token, userInfo: { id: user._id, nickname: user.nickname, avatar: user.avatar, phone: user.phone } }
+  return {
+    token,
+    userInfo: {
+      id: user._id,
+      nickname: user.nickname,
+      avatar: user.avatar,
+      phone: user.phone,
+      age: user.age || 0,
+      gender: user.gender || 0,
+      height: user.height || 0,
+      weight: user.weight || 0,
+      zodiac: user.zodiac || '',
+      bio: user.bio || '',
+      photos: user.photos || [],
+      profileCompleted: user.profileCompleted || false
+    }
+  }
 }

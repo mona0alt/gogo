@@ -21,8 +21,12 @@
 
 <script setup>
 import { computed } from 'vue'
+import { useOrderStore } from '@/stores/order'
+import { payOrder } from '@/api/order'
 
 const props = defineProps({ order: { type: Object, required: true } })
+const emit = defineEmits(['refresh'])
+const orderStore = useOrderStore()
 const statusMap = { pending_payment: '待付款', pending_use: '待使用', in_use: '使用中', completed: '已完成', cancelled: '已取消', refunding: '售后中' }
 const statusText = computed(() => statusMap[props.order.status] || props.order.status)
 const showActions = computed(() => { return ['pending_payment', 'pending_use', 'completed'].includes(props.order.status) })
@@ -36,8 +40,31 @@ const itemCount = computed(() => {
 })
 const formatTime = (time) => { if (!time) return ''; const date = new Date(time); return `${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}` }
 const goToOrderDetail = () => { uni.navigateTo({ url: `/pages/order-detail/index?id=${props.order.id}` }) }
-const handleCancel = () => {}
-const handlePay = () => {}
+const handleCancel = () => {
+  uni.showModal({
+    title: '确认取消',
+    content: '确定要取消该订单吗？',
+    success: async (res) => {
+      if (res.confirm) {
+        try {
+          await orderStore.cancelOrderById(props.order.id)
+          uni.showToast({ title: '已取消', icon: 'success' })
+        } catch (e) {
+          uni.showToast({ title: e.message || '取消失败', icon: 'none' })
+        }
+      }
+    }
+  })
+}
+const handlePay = async () => {
+  try {
+    await payOrder(props.order.id)
+    uni.showToast({ title: '支付成功', icon: 'success' })
+    emit('refresh')
+  } catch (e) {
+    uni.showToast({ title: e.message || '支付失败', icon: 'none' })
+  }
+}
 </script>
 
 <style lang="scss" scoped>

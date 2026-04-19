@@ -1,6 +1,6 @@
 # 酒吧聚合平台小程序
 
-**AppID:** `wxe2bf2dbecd72b3ac`
+**AppID:** `wxea6875f5c19de652`
 **Cloud Environment ID:** `cloud1-d3gjrsyla8bdd9f4a`
 
 ---
@@ -156,4 +156,50 @@ bash scripts/build-mp-weixin.sh
 - 小程序端修改完成后：执行 `npm run build:mp-weixin`
 - 云函数修改完成后：在微信开发者工具中右键云函数文件夹 → "上传并部署"
 - 确保每次修改后的代码都能正常编译通过后再报告完成
+
+### 新建云函数的规范
+
+1. **每个云函数必须有 `package.json`**：包含 `name`、`version` 和 `wx-server-sdk` 依赖。例如：
+   ```json
+   {
+     "name": "cloudFunctionName",
+     "version": "1.0.0",
+     "dependencies": {
+       "wx-server-sdk": "~2.6.3"
+     }
+   }
+   ```
+2. **新建云函数后必须重新构建**：执行 `bash scripts/build-mp-weixin.sh`，确保新云函数被复制到 `dist/build/mp-weixin/`。
+3. **上传并部署**：在微信开发者工具中右键新建的云函数文件夹 → "上传并部署：云端安装依赖"。
+
+### 云函数列表（维护中）
+
+| 云函数 | 功能 | 状态 |
+|--------|------|------|
+| `login` | 微信登录，获取 openid | ✅ |
+| `getBarList` | 酒吧列表 | ✅ |
+| `getBarDetail` | 酒吧详情 | ✅ |
+| `getCategories` | 商品分类 | ✅ |
+| `getProductList` | 商品列表 | ✅ |
+| `cart` | 购物车增删改查 | ✅ |
+| `createOrder` | 创建订单 | ✅ |
+| `getOrders` | 订单列表 | ✅ |
+| `getOrderDetail` | 订单详情 | ✅ |
+| `getPayParams` | 支付参数 | ✅ |
+| `initDatabase` | 数据库初始化 | ✅ |
+| `bindPhone` | 绑定手机号 | ✅ |
+| `cancelOrder` | 取消订单 | ✅ |
+| `payOrder` | 订单支付（假支付） | ✅ |
+| `updateProfile` | 更新用户资料 | ✅ |
+| `getUserInfo` | 获取用户信息 | ✅ |
+| `getRecommendUsers` | 获取推荐用户 | ✅ |
+| `sendMatchRequest` | 发送组局邀请 | ✅ |
+| `getMatchInvites` | 获取组局邀请 | ✅ |
+| `respondMatch` | 响应组局邀请 | ✅ |
+| `createGroup` | 创建组局 | ✅ |
+| `getGroupList` | 获取组局列表 | ✅ |
+| `getGroupStatus` | 获取组局状态 | ✅ |
+| `followUser` | 关注用户 | ✅ |
+| `unfollowUser` | 取消关注 | ✅ |
+| `getFollowList` | 获取关注列表 | ✅ |
 

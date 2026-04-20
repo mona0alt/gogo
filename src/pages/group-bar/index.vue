@@ -218,7 +218,12 @@ const onNext = async () => {
     hideLoading()
     // eslint-disable-next-line no-console
     console.error('createGroup error:', e)
-    showToast({ title: e.message || '创建失败，请检查网络', icon: 'none', duration: 3000 })
+    const msg = e.message || '创建失败，请检查网络'
+    if (msg.includes('进行中的拼团')) {
+      await showModal({ title: '提示', content: msg, showCancel: false, confirmText: '我知道了' })
+    } else {
+      showToast({ title: msg, icon: 'none', duration: 3000 })
+    }
   }
 }
 

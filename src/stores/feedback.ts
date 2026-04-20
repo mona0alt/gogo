@@ -71,6 +71,19 @@ export const useFeedbackStore = defineStore('feedback', {
 
   actions: {
     showModal(options: ModalOptions): Promise<{ confirm: boolean }> {
+      // eslint-disable-next-line no-console
+      console.log('[feedbackStore] showModal called', options)
+      // 防御：如果已有弹窗未关闭，先强制关闭避免 resolve 被覆盖
+      if (this.modal.visible) {
+        // eslint-disable-next-line no-console
+        console.log('[feedbackStore] previous modal still visible, closing first')
+        if (this.modal.resolve) {
+          this.closeModal(false)
+        } else {
+          // resolve 丢失时直接重置 visible，避免旧 Promise 永远挂起
+          this.modal.visible = false
+        }
+      }
       return new Promise((resolve) => {
         this.modal = {
           visible: true,
@@ -81,10 +94,14 @@ export const useFeedbackStore = defineStore('feedback', {
           confirmText: options.confirmText || '确定',
           resolve,
         }
+        // eslint-disable-next-line no-console
+        console.log('[feedbackStore] modal state set', { visible: this.modal.visible, title: this.modal.title })
       })
     },
 
     closeModal(confirm: boolean): void {
+      // eslint-disable-next-line no-console
+      console.log('[feedbackStore] closeModal called', { confirm, hasResolve: !!this.modal.resolve })
       this.modal.visible = false
       if (this.modal.resolve) {
         this.modal.resolve({ confirm })

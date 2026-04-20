@@ -38,9 +38,10 @@
         </button>
         <text class="avatar-tip">点击可更换头像</text>
 
-        <view class="form-row">
+        <view class="form-row" @tap="onNicknameRowTap">
           <text class="form-label">用户昵称</text>
           <input
+            v-if="showNicknameInput"
             ref="nicknameInputRef"
             class="form-input"
             type="nickname"
@@ -48,10 +49,13 @@
             :focus="nicknameFocus"
             confirm-type="done"
             placeholder-class="placeholder"
+            @focus="onNicknameFocus"
             @blur="onNicknameBlur"
             @input="onNicknameInput"
+            @nicknamereview="onNicknameReview"
             @confirm="onConfirmLogin"
           />
+          <text v-else class="form-input nickname-text">{{ tempNickname || '请输入昵称' }}</text>
         </view>
 
         <button class="submit-btn" @tap="onConfirmLogin">确认登录</button>
@@ -78,6 +82,7 @@ const hasChosenAvatar = ref(false)
 const tempNickname = ref('')
 const tempAvatar = ref('')
 const nicknameFocus = ref(false)
+const showNicknameInput = ref(true)
 
 // 老用户已有登录态时静默登录，避免重复选择头像
 onLoad(() => {
@@ -114,21 +119,61 @@ const onChooseAvatar = (e: any) => {
   })
 }
 
+const onNicknameFocus = () => {
+  nicknameFocus.value = true
+}
+
 const onNicknameBlur = (e: any) => {
-  tempNickname.value = e.detail.value || ''
-  if (tempNickname.value.trim()) {
-    nicknameFocus.value = false
+  const val = e.detail.value || ''
+  tempNickname.value = val
+  nicknameFocus.value = false
+  if (val.trim()) {
+    showNicknameInput.value = false
   }
+  // eslint-disable-next-line no-console
+  console.log('[login] onNicknameBlur', { val, showNicknameInput: showNicknameInput.value })
 }
 
 const onNicknameInput = (e: any) => {
-  tempNickname.value = e.detail.value || ''
-  if (tempNickname.value.trim()) {
+  const val = e.detail.value || ''
+  tempNickname.value = val
+  if (val.trim()) {
     nicknameFocus.value = false
+    // 输入有效昵称后销毁 input 以关闭微信原生昵称选择浮层
+    showNicknameInput.value = false
+  }
+  // eslint-disable-next-line no-console
+  console.log('[login] onNicknameInput', { val, showNicknameInput: showNicknameInput.value })
+}
+
+const onNicknameReview = (e: any) => {
+  nicknameFocus.value = false
+  const val = e.detail?.value || ''
+  if (val.trim()) {
+    tempNickname.value = val
+  }
+  if (e.detail?.pass) {
+    showNicknameInput.value = false
+  }
+  // eslint-disable-next-line no-console
+  console.log('[login] onNicknameReview', { detail: e.detail, val, showNicknameInput: showNicknameInput.value })
+}
+
+const onNicknameRowTap = () => {
+  if (!showNicknameInput.value) {
+    showNicknameInput.value = true
+    nextTick(() => {
+      nicknameFocus.value = true
+    })
   }
 }
 
 const onConfirmLogin = async () => {
+  // 强制关闭昵称输入框，确保微信原生昵称选择浮层消失
+  nicknameFocus.value = false
+  showNicknameInput.value = false
+  uni.hideKeyboard()
+
   // 微信小程序 type="nickname" 的 input 值不会通过 @input/@blur 正常同步，
   // 必须用 selector query 在点击时直接读取当前值。
   const nicknameInput = await new Promise<string>((resolve) => {
@@ -140,7 +185,10 @@ const onConfirmLogin = async () => {
       })
       .exec()
   })
-  tempNickname.value = nicknameInput
+  // 只在读到了有效值时才覆盖，避免 input 被销毁后读取到空 text 节点而清空已有昵称
+  if (nicknameInput.trim()) {
+    tempNickname.value = nicknameInput
+  }
 
   // eslint-disable-next-line no-console
   console.log('[login] onConfirmLogin', { nickname: tempNickname.value, avatar: tempAvatar.value })
@@ -362,6 +410,14 @@ const openAgreement = () => {
   color: $text-primary;
   background: transparent;
   border: none;
+  text-align: right;
+  flex: 1;
+  margin-left: 20rpx;
+}
+
+.nickname-text {
+  font-size: 28rpx;
+  color: $text-primary;
   text-align: right;
   flex: 1;
   margin-left: 20rpx;

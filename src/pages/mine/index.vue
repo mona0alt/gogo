@@ -146,8 +146,8 @@
 
 <script setup lang="ts">
 import { showModal, showToast } from '@/utils/feedback'
-import { ref } from 'vue'
-import { onShow, onHide } from '@dcloudio/uni-app'
+import { ref, nextTick } from 'vue'
+import { onShow, onHide, onReady } from '@dcloudio/uni-app'
 import { useUserStore } from '@/stores/user'
 import { useTabBarShowRefresh } from '@/composables/useTabBarShowRefresh'
 import { callCloudFunction } from '@/utils/request'
@@ -170,7 +170,7 @@ const banners = ref([
   { image: '/static/default-bar.png', title: '会员专享折扣', url: '' }
 ])
 const bannerCurrent = ref(0)
-const swiperAutoplay = ref(true)
+const swiperAutoplay = ref(false)
 
 const onBannerChange = (e: any) => {
   bannerCurrent.value = e.detail.current
@@ -184,27 +184,38 @@ const onBannerTap = (banner: any) => {
 
 const doRefresh = () => {
   const storedUserInfo = uni.getStorageSync('userInfo')
+  // eslint-disable-next-line no-console
+  console.log('[mine] doRefresh', { storedUserInfo: !!storedUserInfo, userStoreInfo: !!userStore.userInfo })
 
-  if (storedUserInfo) {
+  if (storedUserInfo && typeof storedUserInfo === 'object') {
     userStore.$patch({
       userInfo: storedUserInfo,
       isLoggedIn: true
     })
-    localAvatar.value = storedUserInfo.avatar || '/static/default-avatar.png'
-    localNickname.value = storedUserInfo.nickname || '未登录'
-    localBalance.value = storedUserInfo.balance || 0
+    const avatar = typeof storedUserInfo.avatar === 'string' ? storedUserInfo.avatar : ''
+    localAvatar.value = avatar || '/static/default-avatar.png'
+    localNickname.value = typeof storedUserInfo.nickname === 'string' ? storedUserInfo.nickname : '未登录'
+    localBalance.value = typeof storedUserInfo.balance === 'number' ? storedUserInfo.balance : 0
     localIsLogin.value = true
-    localMemberLevel.value = storedUserInfo.memberLevel || ''
+    localMemberLevel.value = typeof storedUserInfo.memberLevel === 'string' ? storedUserInfo.memberLevel : ''
 
     fetchInviteCount()
   } else {
     const info = userStore.userInfo
-    localAvatar.value = info ? (info.avatar || '/static/default-avatar.png') : '/static/default-avatar.png'
-    localNickname.value = info ? (info.nickname || '未登录') : '未登录'
-    localBalance.value = info ? (info.balance || 0) : 0
+    const avatar = info && typeof info.avatar === 'string' ? info.avatar : ''
+    localAvatar.value = avatar || '/static/default-avatar.png'
+    localNickname.value = info && typeof info.nickname === 'string' ? info.nickname : '未登录'
+    localBalance.value = info && typeof info.balance === 'number' ? info.balance : 0
     localIsLogin.value = !!info
-    localMemberLevel.value = info?.memberLevel || ''
+    localMemberLevel.value = info && typeof info.memberLevel === 'string' ? info.memberLevel : ''
   }
+  // eslint-disable-next-line no-console
+  console.log('[mine] doRefresh done', {
+    localAvatar: localAvatar.value,
+    localNickname: localNickname.value,
+    localIsLogin: localIsLogin.value,
+    localMemberLevel: localMemberLevel.value
+  })
 }
 
 let isRefreshing = false
@@ -227,8 +238,13 @@ const fetchInviteCount = async () => {
   }
 }
 
+onReady(() => {
+  nextTick(() => {
+    swiperAutoplay.value = true
+  })
+})
+
 onShow(() => {
-  swiperAutoplay.value = true
   refreshViewWrapped()
 })
 
@@ -253,13 +269,56 @@ const goToAddress = () => { uni.navigateTo({ url: '/pages/address/index' }) }
 const goToHelp = () => { uni.navigateTo({ url: '/pages/help/index' }) }
 const goToAbout = () => { uni.navigateTo({ url: '/pages/about/index' }) }
 const handleLogout = async () => {
-  const res = await showModal({
-    title: '确认退出',
-    content: '确定要退出登录吗？',
-  })
-  if (res.confirm) {
-    userStore.logout()
-    refreshViewWrapped()
+  // eslint-disable-next-line no-console
+  console.log('[mine] handleLogout called')
+  try {
+    // 3 秒超时兜底：如果自定义弹窗组件卡住，fallback 到 uni.showModal
+    const res = await Promise.race([
+      showModal({
+        title: '确认退出',
+        content: '确定要退出登录吗？',
+      }),
+      new Promise<{ confirm: boolean }>((resolve) => {
+        setTimeout(() => {
+          // eslint-disable-next-line no-console
+          console.warn('[mine] custom showModal timeout, fallback to uni.showModal')
+          uni.showModal({
+            title: '确认退出',
+            content: '确定要退出登录吗？',
+            success: (r) => resolve({ confirm: r.confirm }),
+            fail: () => resolve({ confirm: false }),
+          })
+        }, 3000)
+      }),
+    ])
+    // eslint-disable-next-line no-console
+    console.log('[mine] showModal result', res)
+    if (res.confirm) {
+      // eslint-disable-next-line no-console
+      console.log('[mine] logout confirmed')
+      userStore.logout()
+      // eslint-disable-next-line no-console
+      console.log('[mine] userStore.logout() called')
+      uni.removeStorageSync('userInfo')
+      // eslint-disable-next-line no-console
+      console.log('[mine] userInfo removed from storage')
+      localAvatar.value = '/static/default-avatar.png'
+      localNickname.value = '未登录'
+      localBalance.value = 0
+      localIsLogin.value = false
+      localMemberLevel.value = ''
+      // eslint-disable-next-line no-console
+      console.log('[mine] local refs updated', { localIsLogin: localIsLogin.value })
+      showToast({ title: '已退出登录', icon: 'success' })
+      // eslint-disable-next-line no-console
+      console.log('[mine] logout toast shown')
+    } else {
+      // eslint-disable-next-line no-console
+      console.log('[mine] logout cancelled')
+    }
+  } catch (err: any) {
+    // eslint-disable-next-line no-console
+    console.error('[mine] handleLogout error:', err)
   }
 }
 </script>

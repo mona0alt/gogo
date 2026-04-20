@@ -4,14 +4,20 @@ import { useFeedbackStore } from '@/stores/feedback'
 const store = useFeedbackStore()
 
 const onMaskClick = () => {
+  // eslint-disable-next-line no-console
+  console.log('[app-modal] mask clicked')
   store.closeModal(false)
 }
 
 const onCancel = () => {
+  // eslint-disable-next-line no-console
+  console.log('[app-modal] cancel clicked')
   store.closeModal(false)
 }
 
 const onConfirm = () => {
+  // eslint-disable-next-line no-console
+  console.log('[app-modal] confirm clicked')
   store.closeModal(true)
 }
 </script>

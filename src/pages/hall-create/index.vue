@@ -103,7 +103,8 @@
   </view>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { showToast } from '@/utils/feedback'
 import { ref, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
 
@@ -129,24 +130,24 @@ const onBack = () => {
 }
 
 const onSelectBar = () => {
-  uni.showToast({ title: '选择酒吧', icon: 'none' })
+  showToast({ title: '选择酒吧', icon: 'none' })
 }
 const onSelectPackage = () => {
-  uni.showToast({ title: '选择套餐', icon: 'none' })
+  showToast({ title: '选择套餐', icon: 'none' })
 }
 const onSelectTime = () => {
-  uni.showToast({ title: '选择时间', icon: 'none' })
+  showToast({ title: '选择时间', icon: 'none' })
 }
 const onSelectType = () => {
-  uni.showToast({ title: '选择类型', icon: 'none' })
+  showToast({ title: '选择类型', icon: 'none' })
 }
 
 const onSubmit = () => {
   if (!form.value.title.trim()) {
-    uni.showToast({ title: '请输入拼团标题', icon: 'none' })
+    showToast({ title: '请输入拼团标题', icon: 'none' })
     return
   }
-  uni.showToast({ title: '发布成功', icon: 'success' })
+  showToast({ title: '发布成功', icon: 'success' })
   setTimeout(() => {
     uni.navigateBack()
   }, 800)
@@ -154,7 +155,6 @@ const onSubmit = () => {
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/variables.scss';
 
 .hall-create-page {
   min-height: 100vh;

@@ -9,7 +9,7 @@
       <!-- Follow List -->
       <view v-if="followList.length > 0" class="follow-list">
         <view v-for="(item, index) in followList" :key="index" class="follow-card">
-          <image class="follow-avatar" :src="item.userInfo?.avatar || '/static/default-avatar.png'" mode="aspectFill" @error="item.userInfo.avatar = '/static/default-avatar.png'" />
+          <image class="follow-avatar" :src="(typeof item.userInfo?.avatar === 'string' && item.userInfo.avatar) || '/static/default-avatar.png'" mode="aspectFill" @error="item.userInfo && (item.userInfo.avatar = '/static/default-avatar.png')" />
           <view class="follow-info">
             <text class="follow-name">{{ item.userInfo?.nickname || '匿名用户' }}</text>
             <text v-if="item.userInfo?.age" class="follow-meta">{{ item.userInfo.age }}岁 · {{ item.userInfo.gender === 1 ? '男' : '女' }}</text>
@@ -42,7 +42,8 @@
   </view>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { showModal, showToast } from '@/utils/feedback'
 import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { callCloudFunction } from '@/utils/request'
@@ -50,7 +51,7 @@ import { useUserStore } from '@/stores/user'
 
 const userStore = useUserStore()
 
-const followList = ref([])
+const followList = ref<any[]>([])
 const loading = ref(false)
 const noMore = ref(false)
 const refreshing = ref(false)
@@ -75,7 +76,7 @@ const fetchList = async () => {
       noMore.value = true
     }
   } catch {
-    uni.showToast({ title: '加载失败', icon: 'none' })
+    showToast({ title: '加载失败', icon: 'none' })
   } finally {
     loading.value = false
     refreshing.value = false
@@ -95,23 +96,20 @@ const onLoadMore = () => {
   fetchList()
 }
 
-const unfollow = async (openid, index) => {
-  uni.showModal({
+const unfollow = async (openid: any, index: any) => {
+  const res = await showModal({
     title: '取消关注',
     content: '确定要取消关注该用户吗？',
-    confirmColor: '#f2ca50',
-    success: async (res) => {
-      if (res.confirm) {
-        try {
-          await callCloudFunction('unfollowUser', { targetOpenid: openid })
-          followList.value.splice(index, 1)
-          uni.showToast({ title: '已取消关注', icon: 'none' })
-        } catch (e) {
-          uni.showToast({ title: e.message || '操作失败', icon: 'none' })
-        }
-      }
-    }
   })
+  if (res.confirm) {
+    try {
+      await callCloudFunction('unfollowUser', { targetOpenid: openid })
+      followList.value.splice(index, 1)
+      showToast({ title: '已取消关注', icon: 'none' })
+    } catch {
+      showToast({ title: '操作失败', icon: 'none' })
+    }
+  }
 }
 
 const checkLoginAndFetch = () => {
@@ -120,6 +118,8 @@ const checkLoginAndFetch = () => {
     uni.navigateTo({ url: '/pages/login/index' })
     return
   }
+  page.value = 1
+  noMore.value = false
   fetchList()
 }
 
@@ -129,7 +129,6 @@ onShow(() => {
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/variables.scss';
 
 .following-page {
   min-height: 100vh;

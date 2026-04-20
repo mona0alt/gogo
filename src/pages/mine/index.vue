@@ -50,7 +50,7 @@
 
     <!-- 活动轮播 -->
     <view v-if="banners.length > 0" class="banner-section">
-      <swiper class="banner-swiper" :indicator-dots="false" :autoplay="true" :interval="4000" :duration="500" :circular="true" @change="onBannerChange">
+      <swiper class="banner-swiper" :indicator-dots="false" :autoplay="swiperAutoplay" :interval="4000" :duration="500" :circular="true" @change="onBannerChange">
         <swiper-item v-for="(banner, index) in banners" :key="index" @tap="onBannerTap(banner)">
           <view class="banner-item">
             <image class="banner-image" :src="banner.image" mode="aspectFill" />
@@ -144,16 +144,19 @@
   </view>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { showModal, showToast } from '@/utils/feedback'
 import { ref } from 'vue'
-import { onShow, onTabItemTap } from '@dcloudio/uni-app'
+import { onShow, onHide } from '@dcloudio/uni-app'
 import { useUserStore } from '@/stores/user'
+import { useTabBarShowRefresh } from '@/composables/useTabBarShowRefresh'
 import { callCloudFunction } from '@/utils/request'
 
 const userStore = useUserStore()
 const stats = { orderCount: 0, wineCount: 0 }
 
-const showUser = ref(false)
+const { ready: showUser, refresh: refreshView } = useTabBarShowRefresh()
+
 const localAvatar = ref('/static/default-avatar.png')
 const localNickname = ref('未登录')
 const localBalance = ref(0)
@@ -161,62 +164,58 @@ const localIsLogin = ref(false)
 const localMemberLevel = ref('')
 const inviteCount = ref(0)
 
-let refreshTimer = null
-
 const banners = ref([
   { image: '/static/default-bar.png', title: '限时特惠活动', url: '' },
   { image: '/static/default-product.png', title: '新品上线', url: '' },
   { image: '/static/default-bar.png', title: '会员专享折扣', url: '' }
 ])
 const bannerCurrent = ref(0)
+const swiperAutoplay = ref(true)
 
-const onBannerChange = (e) => {
+const onBannerChange = (e: any) => {
   bannerCurrent.value = e.detail.current
 }
 
-const onBannerTap = (banner) => {
+const onBannerTap = (banner: any) => {
   if (banner.url) {
     uni.navigateTo({ url: banner.url })
   }
 }
 
-const refreshView = () => {
-  if (refreshTimer) {
-    clearTimeout(refreshTimer)
+const doRefresh = () => {
+  const storedUserInfo = uni.getStorageSync('userInfo')
+
+  if (storedUserInfo) {
+    userStore.$patch({
+      userInfo: storedUserInfo,
+      isLoggedIn: true
+    })
+    localAvatar.value = storedUserInfo.avatar || '/static/default-avatar.png'
+    localNickname.value = storedUserInfo.nickname || '未登录'
+    localBalance.value = storedUserInfo.balance || 0
+    localIsLogin.value = true
+    localMemberLevel.value = storedUserInfo.memberLevel || ''
+
+    fetchInviteCount()
+  } else {
+    const info = userStore.userInfo
+    localAvatar.value = info ? (info.avatar || '/static/default-avatar.png') : '/static/default-avatar.png'
+    localNickname.value = info ? (info.nickname || '未登录') : '未登录'
+    localBalance.value = info ? (info.balance || 0) : 0
+    localIsLogin.value = !!info
+    localMemberLevel.value = info?.memberLevel || ''
   }
+}
 
-  showUser.value = false
-
-  refreshTimer = setTimeout(() => {
-    const storedUserInfo = uni.getStorageSync('userInfo')
-    const storedToken = uni.getStorageSync('token')
-
-    if (storedToken && storedUserInfo) {
-      userStore.$patch({
-        userInfo: storedUserInfo,
-        token: storedToken,
-        isLoggedIn: true
-      })
-      localAvatar.value = storedUserInfo.avatar || '/static/default-avatar.png'
-      localNickname.value = storedUserInfo.nickname || '未登录'
-      localBalance.value = storedUserInfo.balance || 0
-      localIsLogin.value = true
-      localMemberLevel.value = storedUserInfo.memberLevel || ''
-
-      // Fetch invite count
-      fetchInviteCount()
-    } else {
-      const info = userStore.userInfo
-      localAvatar.value = info ? (info.avatar || '/static/default-avatar.png') : '/static/default-avatar.png'
-      localNickname.value = info ? (info.nickname || '未登录') : '未登录'
-      localBalance.value = info ? (info.balance || 0) : 0
-      localIsLogin.value = !!info
-      localMemberLevel.value = info?.memberLevel || ''
-    }
-
-    showUser.value = true
-    refreshTimer = null
-  }, 500)
+let isRefreshing = false
+const refreshViewWrapped = async () => {
+  if (isRefreshing) return
+  isRefreshing = true
+  try {
+    await refreshView(doRefresh)
+  } finally {
+    isRefreshing = false
+  }
 }
 
 const fetchInviteCount = async () => {
@@ -228,14 +227,20 @@ const fetchInviteCount = async () => {
   }
 }
 
-onShow(refreshView)
-onTabItemTap(refreshView)
+onShow(() => {
+  swiperAutoplay.value = true
+  refreshViewWrapped()
+})
+
+onHide(() => {
+  swiperAutoplay.value = false
+})
 
 const goToProfile = () => {
   if (!localIsLogin.value) {
     uni.reLaunch({ url: '/pages/login/index' })
   } else {
-    uni.showToast({ title: '个人资料页待创建', icon: 'none' })
+    showToast({ title: '个人资料页待创建', icon: 'none' })
   }
 }
 
@@ -247,17 +252,15 @@ const goToCoupons = () => { uni.navigateTo({ url: '/pages/coupons/index' }) }
 const goToAddress = () => { uni.navigateTo({ url: '/pages/address/index' }) }
 const goToHelp = () => { uni.navigateTo({ url: '/pages/help/index' }) }
 const goToAbout = () => { uni.navigateTo({ url: '/pages/about/index' }) }
-const handleLogout = () => {
-  uni.showModal({
+const handleLogout = async () => {
+  const res = await showModal({
     title: '确认退出',
     content: '确定要退出登录吗？',
-    success: (res) => {
-      if (res.confirm) {
-        userStore.logout()
-        refreshView()
-      }
-    }
   })
+  if (res.confirm) {
+    userStore.logout()
+    refreshViewWrapped()
+  }
 }
 </script>
 

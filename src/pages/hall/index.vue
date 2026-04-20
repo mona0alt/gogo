@@ -125,7 +125,8 @@
   </view>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { showToast } from '@/utils/feedback'
 import { ref } from 'vue'
 import { useUserStore } from '@/stores/user'
 
@@ -171,20 +172,20 @@ const onPublish = () => {
 }
 
 const onSettings = () => {
-  uni.showToast({ title: '设置功能开发中', icon: 'none' })
+  showToast({ title: '设置功能开发中', icon: 'none' })
 }
 
 const onFilterBar = () => {
-  uni.showToast({ title: '筛选酒吧', icon: 'none' })
+  showToast({ title: '筛选酒吧', icon: 'none' })
 }
 const onFilterPackage = () => {
-  uni.showToast({ title: '筛选套餐', icon: 'none' })
+  showToast({ title: '筛选套餐', icon: 'none' })
 }
 const onFilterPeople = () => {
-  uni.showToast({ title: '筛选人数', icon: 'none' })
+  showToast({ title: '筛选人数', icon: 'none' })
 }
 const onFilterTime = () => {
-  uni.showToast({ title: '筛选时间', icon: 'none' })
+  showToast({ title: '筛选时间', icon: 'none' })
 }
 
 const navAvatarError = () => {
@@ -197,7 +198,6 @@ const onLoadMore = () => {
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/variables.scss';
 
 .hall-page {
   min-height: 100vh;

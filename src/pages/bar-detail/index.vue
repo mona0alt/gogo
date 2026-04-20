@@ -24,12 +24,13 @@
   </view>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { showToast } from '@/utils/feedback'
 import { ref, onMounted } from 'vue'
 import { useBarStore } from '@/stores/bar'
 
 const barStore = useBarStore()
-const bar = ref(null)
+const bar = ref<any>(null)
 
 const callBar = () => { if (bar.value?.phone) { uni.makePhoneCall({ phoneNumber: bar.value.phone }) } }
 const handleStoreWine = () => { uni.navigateTo({ url: '/pages/store-wine/index' }) }
@@ -38,9 +39,9 @@ const goToOrder = () => { barStore.selectBar(bar.value); uni.switchTab({ url: '/
 onMounted(async () => {
   const pages = getCurrentPages() || []
   const currentPage = pages[pages.length - 1]
-  const id = currentPage?.options?.id
+  const id = (currentPage as any)?.options?.id
   if (id) {
-    try { bar.value = await barStore.fetchBarDetail(id) } catch { uni.showToast({ title: '加载失败', icon: 'none' }) }
+    try { bar.value = await barStore.fetchBarDetail(id) } catch { showToast({ title: '加载失败', icon: 'none' }) }
   }
 })
 </script>

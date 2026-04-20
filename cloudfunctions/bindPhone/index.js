@@ -1,18 +1,28 @@
-const cloud = require('wx-server-sdk')
-cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
+const { init, success, fail, unauthorized, notFound, getCurrentUser } = require('../utils')
 
 exports.main = async (event, context) => {
-  const { code, userId } = event
-  const db = cloud.database()
+  const { code } = event
+  const { db, openid } = init()
 
-  // 更新用户手机号
-  if (userId) {
-    await db.collection('users').doc(userId).update({
+  if (!openid) {
+    return unauthorized()
+  }
+
+  try {
+    const user = await getCurrentUser(db, openid)
+    if (!user) {
+      return notFound('用户')
+    }
+
+    // 更新用户手机号（实际应调用微信接口解密 code 获取手机号）
+    await db.collection('users').doc(user._id).update({
       data: {
         updatedAt: new Date()
       }
     })
-  }
 
-  return { success: true }
+    return success()
+  } catch (e) {
+    return fail(e.message)
+  }
 }

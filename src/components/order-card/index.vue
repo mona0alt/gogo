@@ -5,7 +5,7 @@
       <text class="status" :class="`status--${order.status}`">{{ statusText }}</text>
     </view>
     <view class="products">
-      <image v-for="item in displayItems" :key="item.id" class="product-img" :src="item.productImage || '/static/default-product.png'" mode="aspectFill" />
+      <image v-for="(item, idx) in displayItems" :key="item.productId || idx" class="product-img" :src="item.productImage || '/static/default-product.png'" mode="aspectFill" />
       <text v-if="displayItems.length < itemCount" class="more">+{{ itemCount - displayItems.length }}</text>
     </view>
     <view class="footer">
@@ -19,17 +19,26 @@
   </view>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { showModal, showToast } from '@/utils/feedback'
 import { computed } from 'vue'
 import { useOrderStore } from '@/stores/order'
 import { payOrder } from '@/api/order'
 
-const props = defineProps({ order: { type: Object, required: true } })
-const emit = defineEmits(['refresh'])
+import type { Order } from '@/types/domain'
+
+const props = defineProps<{
+  order: Order
+}>()
+
+const emit = defineEmits<{
+  refresh: []
+}>()
+
 const orderStore = useOrderStore()
-const statusMap = { pending_payment: '待付款', pending_use: '待使用', in_use: '使用中', completed: '已完成', cancelled: '已取消', refunding: '售后中' }
+const statusMap: Record<string, string> = { pending_payment: '待付款', pending_use: '待使用', in_use: '使用中', completed: '已完成', cancelled: '已取消', refunding: '售后中' }
 const statusText = computed(() => statusMap[props.order.status] || props.order.status)
-const showActions = computed(() => { return ['pending_payment', 'pending_use', 'completed'].includes(props.order.status) })
+const showActions = computed(() => ['pending_payment', 'pending_use', 'completed'].includes(props.order.status))
 const displayItems = computed(() => {
   if (!props.order.items || !Array.isArray(props.order.items)) return []
   return props.order.items.slice(0, 3)
@@ -38,31 +47,33 @@ const itemCount = computed(() => {
   if (!props.order.items || !Array.isArray(props.order.items)) return 0
   return props.order.items.length
 })
-const formatTime = (time) => { if (!time) return ''; const date = new Date(time); return `${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}` }
+const formatTime = (time: string | number | undefined): string => {
+  if (!time) return ''
+  const date = new Date(time)
+  return `${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`
+}
 const goToOrderDetail = () => { uni.navigateTo({ url: `/pages/order-detail/index?id=${props.order.id}` }) }
-const handleCancel = () => {
-  uni.showModal({
+const handleCancel = async () => {
+  const res = await showModal({
     title: '确认取消',
     content: '确定要取消该订单吗？',
-    success: async (res) => {
-      if (res.confirm) {
-        try {
-          await orderStore.cancelOrderById(props.order.id)
-          uni.showToast({ title: '已取消', icon: 'success' })
-        } catch (e) {
-          uni.showToast({ title: e.message || '取消失败', icon: 'none' })
-        }
-      }
-    }
   })
+  if (res.confirm) {
+    try {
+      await orderStore.cancelOrderById(props.order.id)
+      showToast({ title: '已取消', icon: 'success' })
+    } catch {
+      showToast({ title: '取消失败', icon: 'none' })
+    }
+  }
 }
 const handlePay = async () => {
   try {
     await payOrder(props.order.id)
-    uni.showToast({ title: '支付成功', icon: 'success' })
+    showToast({ title: '支付成功', icon: 'success' })
     emit('refresh')
-  } catch (e) {
-    uni.showToast({ title: e.message || '支付失败', icon: 'none' })
+  } catch (e: any) {
+    showToast({ title: e.message || '支付失败', icon: 'none' })
   }
 }
 </script>

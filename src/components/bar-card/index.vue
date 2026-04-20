@@ -20,24 +20,35 @@
   </view>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue'
 
-const props = defineProps({
-  bar: { type: Object, required: true }
-})
+interface Bar {
+  id?: string
+  coverImage?: string
+  name?: string
+  status?: string
+  distance?: number | string
+  minimumSpend?: number
+  tags?: string[]
+  [key: string]: any
+}
+
+const props = defineProps<{
+  bar: Bar
+}>()
 
 const displayTags = computed(() => {
   if (!props.bar.tags || !Array.isArray(props.bar.tags)) return []
   return props.bar.tags.slice(0, 3)
 })
 
-const formatDistance = (distance) => {
+const formatDistance = (distance: number | string | undefined): string => {
   if (!distance) return ''
   if (typeof distance === 'number') {
     return distance < 1000 ? `${distance}m` : `${(distance / 1000).toFixed(1)}km`
   }
-  return distance
+  return String(distance)
 }
 
 const goToBarDetail = () => {

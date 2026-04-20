@@ -66,27 +66,28 @@
   </view>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { showToast, showLoading, hideLoading } from '@/utils/feedback'
 import { ref, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { callCloudFunction } from '@/utils/request'
 
 const userStore = useUserStore()
-const inviteList = ref([])
+const inviteList = ref<any[]>([])
 const loading = ref(false)
 const noMore = ref(false)
 const refreshing = ref(false)
 const page = ref(1)
 const pageSize = 10
 
-const formatTime = (date) => {
+const formatTime = (date: any) => {
   if (!date) return ''
   const d = new Date(date)
   return `${d.getMonth() + 1}月${d.getDate()}日`
 }
 
-const statusText = (status) => {
-  const map = { pending: '待处理', accepted: '已接受', rejected: '已拒绝', expired: '已过期' }
+const statusText = (status: any) => {
+  const map: Record<string, string> = { pending: '待处理', accepted: '已接受', rejected: '已拒绝', expired: '已过期' }
   return map[status] || status
 }
 
@@ -108,7 +109,7 @@ const fetchList = async () => {
       noMore.value = true
     }
   } catch {
-    uni.showToast({ title: '加载失败', icon: 'none' })
+    showToast({ title: '加载失败', icon: 'none' })
   } finally {
     loading.value = false
     refreshing.value = false
@@ -136,23 +137,23 @@ const onLoadMore = () => {
   fetchList()
 }
 
-const respond = async (matchId, action) => {
-  uni.showLoading({ title: '处理中...', mask: true })
+const respond = async (matchId: any, action: any) => {
+  showLoading({ title: '处理中...', mask: true })
   try {
     const res = await callCloudFunction('respondMatch', { matchId, action })
     if (res.error) {
-      uni.showToast({ title: res.error, icon: 'none' })
+      showToast({ title: res.error, icon: 'none' })
       return
     }
-    uni.showToast({ title: action === 'accept' ? '已接受' : '已拒绝', icon: 'success' })
+    showToast({ title: action === 'accept' ? '已接受' : '已拒绝', icon: 'success' })
     // Refresh list
     page.value = 1
     noMore.value = false
     fetchList()
-  } catch (e) {
-    uni.showToast({ title: e.message || '操作失败', icon: 'none' })
+  } catch (e: any) {
+    showToast({ title: e.message || '操作失败', icon: 'none' })
   } finally {
-    uni.hideLoading()
+    hideLoading()
   }
 }
 
@@ -166,7 +167,6 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/variables.scss';
 
 .invites-page {
   min-height: 100vh;

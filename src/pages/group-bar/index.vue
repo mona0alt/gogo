@@ -111,7 +111,8 @@
   </view>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { showToast, showModal, showLoading, hideLoading } from '@/utils/feedback'
 import { ref, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { useBarStore } from '@/stores/bar'
@@ -125,16 +126,16 @@ const date = ref('')
 const startTime = ref('')
 const endTime = ref('')
 
-const selectedBar = ref(null)
+const selectedBar = ref<any>(null)
 const selectedPackage = ref('')
 const expanded = ref(true)
-const otherBars = ref([])
+const otherBars = ref<any[]>([])
 
 const toggleExpand = () => {
   expanded.value = !expanded.value
 }
 
-const selectBar = (bar) => {
+const selectBar = (bar: any) => {
   selectedBar.value = bar
   selectedPackage.value = ''
   expanded.value = true
@@ -148,9 +149,9 @@ const fetchBars = async () => {
       selectedBar.value = list[0]
       otherBars.value = list.slice(1)
     }
-  } catch (e) {
+  } catch (e: any) {
     console.error('Fetch bars failed:', e)
-    uni.showToast({ title: '加载酒吧失败', icon: 'none' })
+    showToast({ title: '加载酒吧失败', icon: 'none' })
   }
 }
 
@@ -160,11 +161,11 @@ const onBack = () => {
 
 const onNext = async () => {
   if (!selectedPackage.value) {
-    uni.showToast({ title: '请选择套餐', icon: 'none' })
+    showToast({ title: '请选择套餐', icon: 'none' })
     return
   }
   if (!selectedBar.value) {
-    uni.showToast({ title: '请选择酒吧', icon: 'none' })
+    showToast({ title: '请选择酒吧', icon: 'none' })
     return
   }
 
@@ -173,7 +174,14 @@ const onNext = async () => {
   const st = startTime.value || uni.getStorageSync('groupStartTime') || ''
   const et = endTime.value || uni.getStorageSync('groupEndTime') || ''
 
-  uni.showLoading({ title: '创建中...', mask: true })
+  if (!d || !st || !et) {
+    showToast({ title: '请先选择预约时间', icon: 'none', duration: 3000 })
+    return
+  }
+
+  showLoading({ title: '创建中...', mask: true })
+  // eslint-disable-next-line no-console
+  console.log('[createGroup] start', { barId: selectedBar.value.id || selectedBar.value._id, barName: selectedBar.value.name, packageType: selectedPackage.value, date: d, startTime: st, endTime: et })
 
   try {
     const res = await callCloudFunction('createGroup', {
@@ -186,15 +194,17 @@ const onNext = async () => {
       endTime: et
     })
 
-    uni.hideLoading()
+    hideLoading()
+    // eslint-disable-next-line no-console
+    console.log('[createGroup] success', res)
 
     if (res.error) {
-      uni.showToast({ title: res.error, icon: 'none', duration: 3000 })
+      await showModal({ title: '提示', content: res.error, showCancel: false, confirmText: '我知道了' })
       return
     }
 
     if (!res.groupId) {
-      uni.showToast({ title: '创建失败：未返回拼团ID', icon: 'none', duration: 3000 })
+      showToast({ title: '创建失败：未返回拼团ID', icon: 'none', duration: 3000 })
       return
     }
 
@@ -204,10 +214,11 @@ const onNext = async () => {
       url,
       fail: () => uni.redirectTo({ url })
     })
-  } catch (e) {
-    uni.hideLoading()
+  } catch (e: any) {
+    hideLoading()
+    // eslint-disable-next-line no-console
     console.error('createGroup error:', e)
-    uni.showToast({ title: e.message || '创建失败，请检查网络', icon: 'none', duration: 3000 })
+    showToast({ title: e.message || '创建失败，请检查网络', icon: 'none', duration: 3000 })
   }
 }
 
@@ -218,18 +229,17 @@ onMounted(() => {
   }
   const pages = getCurrentPages()
   const current = pages[pages.length - 1]
-  if (current && current.options) {
-    targetGender.value = Number(current.options.targetGender) || 0
-    date.value = current.options.date || ''
-    startTime.value = current.options.startTime || ''
-    endTime.value = current.options.endTime || ''
+  if (current && (current as any)?.options) {
+    targetGender.value = Number((current as any)?.options.targetGender) || 0
+    date.value = (current as any)?.options.date || ''
+    startTime.value = (current as any)?.options.startTime || ''
+    endTime.value = (current as any)?.options.endTime || ''
   }
   fetchBars()
 })
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/variables.scss';
 
 .bar-page {
   min-height: 100vh;

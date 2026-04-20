@@ -112,7 +112,8 @@
   </view>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { showToast, showLoading, hideLoading } from '@/utils/feedback'
 import { ref, computed, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { callCloudFunction } from '@/utils/request'
@@ -121,7 +122,7 @@ const userStore = useUserStore()
 
 const groupId = ref('')
 
-const userList = ref([])
+const userList = ref<any[]>([])
 const currentIndex = ref(0)
 const loading = ref(false)
 const swipeDirection = ref('')
@@ -163,23 +164,36 @@ const handlePhotoError = () => {
   }
 }
 
+const fetchFollowList = async () => {
+  try {
+    const res = await callCloudFunction('getFollowList', { page: 1, pageSize: 100 })
+    const list = res.list || []
+    followedUsers.value = new Set(list.map((f: any) => f.openid))
+  } catch {
+    // silently ignore
+  }
+}
+
 const fetchRecommendUsers = async () => {
   const gid = groupId.value || uni.getStorageSync('currentGroupId')
   if (!gid) {
-    uni.showToast({ title: '拼团信息缺失', icon: 'none' })
+    showToast({ title: '拼团信息缺失', icon: 'none' })
     return
   }
   uni.setStorageSync('currentGroupId', gid)
 
   loading.value = true
   try {
-    const res = await callCloudFunction('getRecommendUsers', { groupId: gid, limit: 20 })
+    const [res] = await Promise.all([
+      callCloudFunction('getRecommendUsers', { groupId: gid, limit: 20 }),
+      fetchFollowList()
+    ])
     userList.value = res.list || []
     if (userList.value.length === 0) {
-      uni.showToast({ title: '暂无推荐用户', icon: 'none' })
+      showToast({ title: '暂无推荐用户', icon: 'none' })
     }
   } catch {
-    uni.showToast({ title: '加载失败', icon: 'none' })
+    showToast({ title: '加载失败', icon: 'none' })
   } finally {
     loading.value = false
   }
@@ -210,7 +224,7 @@ const onLike = async () => {
   if (!gid) return
 
   isProcessing.value = true
-  uni.showLoading({ title: '发送中...', mask: true })
+  showLoading({ title: '发送中...', mask: true })
 
   try {
     await callCloudFunction('sendMatchRequest', {
@@ -218,7 +232,7 @@ const onLike = async () => {
       toOpenid: currentUser.value.openid
     })
 
-    uni.showToast({
+    showToast({
       title: '已发送配对消息给对方，请耐心等待~',
       icon: 'none',
       duration: 2500
@@ -226,11 +240,11 @@ const onLike = async () => {
 
     swipeDirection.value = 'right'
     setTimeout(goToNext, 800)
-  } catch (e) {
-    uni.showToast({ title: e.message || '发送失败', icon: 'none' })
+  } catch (e: any) {
+    showToast({ title: e.message || '发送失败', icon: 'none' })
     isProcessing.value = false
   } finally {
-    uni.hideLoading()
+    hideLoading()
   }
 }
 
@@ -247,22 +261,22 @@ const onStar = async () => {
     } else {
       await callCloudFunction('followUser', { targetOpenid })
       followedUsers.value.add(targetOpenid)
-      uni.showToast({ title: '已关注对方', icon: 'none' })
+      showToast({ title: '已关注对方', icon: 'none' })
     }
-  } catch (e) {
-    uni.showToast({ title: e.message || '操作失败', icon: 'none' })
+  } catch (e: any) {
+    showToast({ title: e.message || '操作失败', icon: 'none' })
   }
 }
 
 // Touch handlers for card swipe
-const onTouchStart = (e) => {
+const onTouchStart = (e: any) => {
   touchStartX.value = e.touches[0].clientX
   touchStartY.value = e.touches[0].clientY
   dragOffsetX.value = 0
   isDragging.value = true
 }
 
-const onTouchMove = (e) => {
+const onTouchMove = (e: any) => {
   if (!isDragging.value) return
   const currentX = e.touches[0].clientX
   const currentY = e.touches[0].clientY
@@ -318,15 +332,14 @@ onMounted(() => {
   }
   const pages = getCurrentPages()
   const current = pages[pages.length - 1]
-  if (current && current.options) {
-    groupId.value = current.options.groupId || ''
+  if (current && (current as any)?.options) {
+    groupId.value = (current as any)?.options.groupId || ''
   }
   fetchRecommendUsers()
 })
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/variables.scss';
 
 .match-page {
   min-height: 100vh;

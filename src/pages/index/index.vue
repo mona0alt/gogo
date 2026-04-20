@@ -129,25 +129,26 @@
   </view>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { showToast } from '@/utils/feedback'
 import { ref, onMounted } from 'vue'
 import { callCloudFunction } from '@/utils/request'
 
-const hotList = ref([])
-const groupList = ref([])
+const hotList = ref<any[]>([])
+const groupList = ref<any[]>([])
 const loading = ref(false)
 const noMore = ref(false)
 const refreshing = ref(false)
 const page = ref(1)
 const pageSize = 10
 
-const formatGenderText = (gender) => {
+const formatGenderText = (gender: any) => {
   if (gender === 1) return '找小哥哥'
   if (gender === 2) return '找小姐姐'
   return '不限性别'
 }
 
-const getGroupTitle = (item) => {
+const getGroupTitle = (item: any) => {
   const genderText = formatGenderText(item.targetGender)
   return `想${genderText}，一起去${item.barName}`
 }
@@ -161,7 +162,7 @@ const fetchHotList = async () => {
       excludeOwn: true
     })
     hotList.value = res.list || []
-  } catch (e) {
+  } catch (e: any) {
     console.error('Fetch hot list failed:', e)
   }
 }
@@ -186,7 +187,7 @@ const fetchList = async () => {
       noMore.value = true
     }
   } catch {
-    uni.showToast({ title: '加载失败', icon: 'none' })
+    showToast({ title: '加载失败', icon: 'none' })
   } finally {
     loading.value = false
     refreshing.value = false
@@ -219,7 +220,7 @@ const goToSearch = () => {
   uni.navigateTo({ url: '/pages/product-search/index' })
 }
 
-const onCardTap = (item) => {
+const onCardTap = (item: any) => {
   uni.navigateTo({ url: `/pages/hall-detail/index?id=${item._id}` })
 }
 
@@ -230,7 +231,6 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/variables.scss';
 
 .index-page {
   min-height: 100vh;

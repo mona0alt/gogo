@@ -117,7 +117,7 @@
   </view>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
 
@@ -125,7 +125,7 @@ const userStore = useUserStore()
 const targetGender = ref(0)
 
 // Generate time slots from 18:00 to 04:00
-const timeSlots = []
+const timeSlots: any[] = []
 for (let h = 18; h <= 23; h++) {
   timeSlots.push(`${h.toString().padStart(2, '0')}:00`)
 }
@@ -140,7 +140,7 @@ function getTodayString() {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
-function formatDate(dateStr) {
+function formatDate(dateStr: any) {
   const d = new Date(dateStr)
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
   return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`
@@ -154,18 +154,18 @@ const durationText = computed(() => {
   return `${hours} Hour${hours > 1 ? 's' : ''}`
 })
 
-const onDateChange = (e) => {
+const onDateChange = (e: any) => {
   selectedDate.value = e.detail.value
 }
 
-const onStartChange = (e) => {
+const onStartChange = (e: any) => {
   startIndex.value = e.detail.value[0]
   if (endIndex.value <= startIndex.value) {
     endIndex.value = Math.min(startIndex.value + 1, timeSlots.length - 1)
   }
 }
 
-const onEndChange = (e) => {
+const onEndChange = (e: any) => {
   endIndex.value = e.detail.value[0]
   if (endIndex.value <= startIndex.value) {
     startIndex.value = Math.max(endIndex.value - 1, 0)
@@ -194,13 +194,15 @@ onMounted(() => {
     uni.navigateTo({ url: '/pages/login/index' })
     return
   }
-  // For non-tab pages in uni-app, we can't use defineProps
-  // The page params will be handled when navigating
+  const pages = getCurrentPages()
+  const current = pages[pages.length - 1]
+  if (current && (current as any)?.options) {
+    targetGender.value = Number((current as any)?.options.targetGender) || 0
+  }
 })
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/variables.scss';
 
 .time-page {
   min-height: 100vh;

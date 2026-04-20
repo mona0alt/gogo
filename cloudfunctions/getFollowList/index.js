@@ -1,15 +1,15 @@
 const cloud = require('wx-server-sdk')
-cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
+const { init, success, fail, unauthorized } = require('../utils')
 
 exports.main = async (event, context) => {
-  const { page = 1, pageSize = 20 } = event
-  const db = cloud.database()
-  const wxContext = cloud.getWXContext()
-  const openid = wxContext.OPENID
+  const { db, openid } = init()
 
   if (!openid) {
-    return { error: '无法获取用户信息' }
+    return unauthorized()
   }
+
+  const { page = 1, pageSize = 20 } = event
+  const limit = Math.min(Number(pageSize) || 20, 100)
 
   let total = 0
   let follows = []
@@ -23,24 +23,30 @@ exports.main = async (event, context) => {
     const listRes = await db.collection('follows')
       .where({ followerOpenid: openid })
       .orderBy('createdAt', 'desc')
-      .skip((page - 1) * pageSize)
-      .limit(pageSize)
+      .skip((page - 1) * limit)
+      .limit(limit)
       .get()
     follows = listRes.data
   } catch (err) {
     if (err.message && err.message.includes('DATABASE_COLLECTION_NOT_EXIST')) {
-      return { list: [], total: 0, page, pageSize }
+      return success({ list: [], total: 0, page, pageSize: limit })
     }
-    throw err
+    return fail(err.message)
   }
 
-  // Enrich with user info
+  // Enrich with user info — batch query to avoid N+1
+  const followingOpenids = [...new Set(follows.map(f => f.followingOpenid).filter(Boolean))]
+  let userMap = {}
+  if (followingOpenids.length > 0) {
+    const userRes = await db.collection('users').where({ openid: db.command.in(followingOpenids) }).get()
+    userRes.data.forEach(u => { userMap[u.openid] = u })
+  }
+
   const list = []
   const fileIdSet = new Set()
 
   for (const f of follows) {
-    const userRes = await db.collection('users').where({ openid: f.followingOpenid }).get()
-    const user = userRes.data[0] || {}
+    const user = userMap[f.followingOpenid] || {}
     if (user.avatar && user.avatar.startsWith('cloud://')) {
       fileIdSet.add(user.avatar)
     }
@@ -85,10 +91,10 @@ exports.main = async (event, context) => {
     delete item.rawAvatar
   })
 
-  return {
+  return success({
     list,
     total,
     page,
-    pageSize
-  }
+    pageSize: limit
+  })
 }

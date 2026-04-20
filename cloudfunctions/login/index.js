@@ -1,23 +1,19 @@
 const cloud = require('wx-server-sdk')
-cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
+const { createHandler, success, fail, getCurrentUser, rateLimit } = require('../utils')
 
-exports.main = async (event, context) => {
+exports.main = createHandler({ requireUser: false }, async (event, context, { db, openid }) => {
   const { nickname, avatar } = event
-  const db = cloud.database()
 
-  // 获取 openid（通过云开发上下文获取，无需调用 code2Session）
-  const wxContext = cloud.getWXContext()
-  const openid = wxContext.OPENID
-
-  if (!openid) {
-    return { error: '无法获取用户信息' }
+  // 限流：每个 openid 每分钟最多 30 次登录
+  const allowed = await rateLimit(db, `login_${openid}`, 30, 60)
+  if (!allowed) {
+    return fail('操作过于频繁，请稍后再试')
   }
 
   // 查询或创建用户
-  const users = await db.collection('users').where({ openid }).get()
-  let user
+  let user = await getCurrentUser(db, openid)
 
-  if (users.data.length === 0) {
+  if (!user) {
     // 新用户创建
     const now = new Date()
     user = {
@@ -33,7 +29,6 @@ exports.main = async (event, context) => {
     const { _id } = await db.collection('users').add({ data: user })
     user._id = _id
   } else {
-    user = users.data[0]
     // 更新现有用户的昵称和头像
     if (nickname || avatar) {
       const updateData = { updatedAt: new Date() }
@@ -44,8 +39,8 @@ exports.main = async (event, context) => {
         if (user.avatar && user.avatar.startsWith('cloud://')) {
           try {
             await cloud.deleteFile({ fileList: [user.avatar] })
-          } catch (e) {
-            console.log('Delete old avatar failed:', e)
+          } catch {
+            // 忽略旧头像删除失败
           }
         }
       }
@@ -57,11 +52,7 @@ exports.main = async (event, context) => {
     }
   }
 
-  // 生成自定义登录 token
-  const token = Buffer.from(JSON.stringify({ openid, timestamp: Date.now() })).toString('base64')
-
-  return {
-    token,
+  return success({
     userInfo: {
       id: user._id,
       nickname: user.nickname,
@@ -76,5 +67,5 @@ exports.main = async (event, context) => {
       photos: user.photos || [],
       profileCompleted: user.profileCompleted || false
     }
-  }
-}
+  })
+})

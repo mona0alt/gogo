@@ -104,7 +104,8 @@
   </view>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { showToast } from '@/utils/feedback'
 import { ref, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { callCloudFunction } from '@/utils/request'
@@ -113,8 +114,8 @@ const userStore = useUserStore()
 
 const groupId = ref('')
 
-const groupInfo = ref(null)
-const partnerInfo = ref(null)
+const groupInfo = ref<any>(null)
+const partnerInfo = ref<any>(null)
 const groupStatus = ref('')
 const tableNumber = ref('')
 const loading = ref(false)
@@ -124,7 +125,7 @@ const navAvatarError = () => {
   if (userStore.userInfo) userStore.userInfo.avatar = '/static/default-avatar.png'
 }
 
-const formatTime = (date) => {
+const formatTime = (date: any) => {
   if (!date) return ''
   const d = new Date(date)
   return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`
@@ -145,7 +146,7 @@ const fetchGroupStatus = async () => {
     if (groupStatus.value === 'confirmed') {
       tableNumber.value = String(Math.floor(Math.random() * 20) + 1).padStart(2, '0')
     }
-  } catch (e) {
+  } catch (e: any) {
     console.error('Fetch group status failed:', e)
   } finally {
     loading.value = false
@@ -153,7 +154,7 @@ const fetchGroupStatus = async () => {
 }
 
 const onPay = () => {
-  uni.showToast({ title: '支付功能开发中', icon: 'none' })
+  showToast({ title: '支付功能开发中', icon: 'none' })
   // TODO: Implement payment flow
 }
 
@@ -167,7 +168,6 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/variables.scss';
 
 .status-page {
   min-height: 100vh;

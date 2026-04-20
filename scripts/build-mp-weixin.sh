@@ -49,6 +49,19 @@ if [ -d "cloudfunctions" ]; then
     rm -rf "$OUTPUT_DIR/cloudfunctions"
     cp -r cloudfunctions "$OUTPUT_DIR/cloudfunctions"
     echo "   - 已复制云函数目录"
+
+    # 将公共 utils 注入到每个云函数目录，避免云端 ../utils 路径失效
+    UTILS_SRC="$OUTPUT_DIR/cloudfunctions/utils/index.js"
+    if [ -f "$UTILS_SRC" ]; then
+        for func_dir in "$OUTPUT_DIR"/cloudfunctions/*/; do
+            func_name=$(basename "$func_dir")
+            [ "$func_name" = "utils" ] && continue
+            cp "$UTILS_SRC" "$func_dir/utils.js"
+            # 替换 require('../utils') -> require('./utils')
+            sed -i.bak "s|require('../utils')|require('./utils')|g" "$func_dir/index.js" && rm -f "$func_dir/index.js.bak"
+        done
+        echo "   - 已注入 utils 到各云函数"
+    fi
 fi
 
 # 更新 project.config.json 配置云开发

@@ -137,22 +137,22 @@
   </view>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { showToast } from '@/utils/feedback'
 const onBack = () => {
   uni.navigateBack()
 }
 
 const onInvite = () => {
-  uni.showToast({ title: '邀请好友', icon: 'none' })
+  showToast({ title: '邀请好友', icon: 'none' })
 }
 
 const onJoin = () => {
-  uni.showToast({ title: '申请加入中...', icon: 'none' })
+  showToast({ title: '申请加入中...', icon: 'none' })
 }
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/variables.scss';
 
 .hall-detail-page {
   min-height: 100vh;

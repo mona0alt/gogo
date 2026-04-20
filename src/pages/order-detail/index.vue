@@ -22,7 +22,7 @@
     </view>
     <view class="section amount-section">
       <view class="row"><text class="label">商品金额</text><text class="value">¥{{ order?.totalAmount }}</text></view>
-      <view v-if="order?.discountAmount > 0" class="row"><text class="label">优惠金额</text><text class="value discount">-¥{{ order?.discountAmount }}</text></view>
+      <view v-if="(order?.discountAmount || 0) > 0" class="row"><text class="label">优惠金额</text><text class="value discount">-¥{{ order?.discountAmount }}</text></view>
       <view class="row total"><text class="label">实付金额</text><text class="value">¥{{ order?.payAmount }}</text></view>
     </view>
     <view v-if="showActions" class="bottom-bar">
@@ -32,7 +32,8 @@
   </view>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { showModal, showToast } from '@/utils/feedback'
 import { computed, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { useOrderStore } from '@/stores/order'
@@ -52,26 +53,30 @@ const statusMap = {
   refunding: { text: '售后中', icon: '🔄' }
 }
 
-const statusText = computed(() => statusMap[order.value?.status]?.text || '')
-const statusIcon = computed(() => statusMap[order.value?.status]?.icon || '')
-const showActions = computed(() => { return ['pending_payment'].includes(order.value?.status) })
+const statusText = computed(() => (statusMap as Record<string, any>)[(order.value as any)?.status || '']?.text || '')
+const statusIcon = computed(() => (statusMap as Record<string, any>)[(order.value as any)?.status || '']?.icon || '')
+const showActions = computed(() => { return ['pending_payment'].includes((order.value as any)?.status || '') })
 
-const formatDateTime = (time) => {
+const formatDateTime = (time: any) => {
   if (!time) return ''
   const date = new Date(time)
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
 }
 
 const handleCancel = async () => {
-  uni.showModal({ title: '确认取消', content: '确定要取消该订单吗？', success: async (res) => { if (res.confirm) { await orderStore.cancelOrderById(order.value.id); uni.showToast({ title: '已取消', icon: 'success' }) } } })
+  const res = await showModal({ title: '确认取消', content: '确定要取消该订单吗？' })
+  if (res.confirm) {
+    await orderStore.cancelOrderById((order.value as any)?.id)
+    showToast({ title: '已取消', icon: 'success' })
+  }
 }
 const handlePay = async () => {
   try {
-    await payOrder(order.value.id)
-    uni.showToast({ title: '支付成功', icon: 'success' })
-    orderStore.fetchOrderDetail(order.value.id)
-  } catch (e) {
-    uni.showToast({ title: e.message || '支付失败', icon: 'none' })
+    await payOrder((order.value as any)?.id)
+    showToast({ title: '支付成功', icon: 'success' })
+    orderStore.fetchOrderDetail((order.value as any)?.id)
+  } catch (e: any) {
+    showToast({ title: e.message || '支付失败', icon: 'none' })
   }
 }
 
@@ -82,7 +87,7 @@ onMounted(async () => {
   }
   const pages = getCurrentPages() || []
   const currentPage = pages[pages.length - 1]
-  const id = currentPage?.options?.id
+  const id = (currentPage as any)?.options?.id
   if (id) { await orderStore.fetchOrderDetail(id) }
 })
 </script>

@@ -12,7 +12,8 @@
   </view>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { showToast } from '@/utils/feedback'
 import { ref, computed, onMounted } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { useOrderStore } from '@/stores/order'
@@ -52,7 +53,7 @@ const displayOrders = computed(() => {
   return (orderStore.orders || []).filter(o => o.status === currentStatus.value)
 })
 
-const switchTab = async (status) => {
+const switchTab = async (status: any) => {
   currentStatus.value = status
   orderStore.setStatusFilter(status)
   page.value = 1
@@ -73,7 +74,7 @@ const fetchOrders = async () => {
     const list = data?.list || []
     if (page.value === 1) { orderStore.orders = list } else { orderStore.orders.push(...list) }
     if (list.length < pageSize) { noMore.value = true }
-  } catch { uni.showToast({ title: '加载失败', icon: 'none' }) } finally { loading.value = false }
+  } catch { showToast({ title: '加载失败', icon: 'none' }) } finally { loading.value = false }
 }
 
 onMounted(() => { fetchOrders() })

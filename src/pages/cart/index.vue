@@ -27,7 +27,8 @@
   </view>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { showToast } from '@/utils/feedback'
 import { onShow } from '@dcloudio/uni-app'
 import { useCartStore } from '@/stores/cart'
 import { useUserStore } from '@/stores/user'
@@ -42,19 +43,19 @@ onShow(() => {
   }
 })
 
-const handleUpdateQuantity = async (itemId, quantity) => {
+const handleUpdateQuantity = async (itemId: any, quantity: any) => {
   try {
     await cartStore.updateQuantity(itemId, quantity)
   } catch {
-    uni.showToast({ title: '更新失败', icon: 'none' })
+    showToast({ title: '更新失败', icon: 'none' })
   }
 }
 
-const handleRemove = async (itemId) => {
+const handleRemove = async (itemId: any) => {
   try {
     await cartStore.removeItem(itemId)
   } catch {
-    uni.showToast({ title: '删除失败', icon: 'none' })
+    showToast({ title: '删除失败', icon: 'none' })
   }
 }
 
@@ -62,7 +63,7 @@ const clearCart = async () => {
   try {
     await cartStore.clearCart()
   } catch {
-    uni.showToast({ title: '清空失败', icon: 'none' })
+    showToast({ title: '清空失败', icon: 'none' })
   }
 }
 

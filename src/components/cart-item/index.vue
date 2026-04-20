@@ -18,12 +18,29 @@
   </view>
 </template>
 
-<script setup>
-const props = defineProps({
-  item: { type: Object, required: true },
-  isChecked: { type: Boolean, default: false }
-})
-const emit = defineEmits(['toggle-check', 'increment', 'decrement', 'delete'])
+<script setup lang="ts">
+interface CartItem {
+  id: string
+  productImage?: string
+  productName?: string
+  specs?: string
+  price: number
+  quantity: number
+  [key: string]: any
+}
+
+const props = defineProps<{
+  item: CartItem
+  isChecked?: boolean
+}>()
+
+const emit = defineEmits<{
+  'toggle-check': [itemId: string]
+  increment: [itemId: string, quantity: number]
+  decrement: [itemId: string, quantity: number]
+  delete: [itemId: string]
+}>()
+
 const handleToggleCheck = () => emit('toggle-check', props.item.id)
 const handleIncrement = () => emit('increment', props.item.id, props.item.quantity + 1)
 const handleDecrement = () => { if (props.item.quantity > 1) emit('decrement', props.item.id, props.item.quantity - 1) }

@@ -128,10 +128,13 @@
   </view>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { showModal, showToast } from '@/utils/feedback'
 import { ref } from 'vue'
+import { useUserStore } from '@/stores/user'
 import { onShow } from '@dcloudio/uni-app'
 
+const userStore = useUserStore()
 const userAvatar = ref('/static/default-avatar.png')
 const userNickname = ref('未登录')
 const currentLevel = ref('')
@@ -151,7 +154,7 @@ onShow(() => {
   }
 })
 
-const selectPlan = (plan) => {
+const selectPlan = (plan: any) => {
   selectedPlan.value = plan
 }
 
@@ -166,17 +169,15 @@ const handleSubscribe = async () => {
     vip: { name: 'VIP会员', price: 99 },
     svip: { name: 'SVIP会员', price: 999 }
   }
-  const plan = planInfo[selectedPlan.value]
+  const plan = (planInfo as any)[selectedPlan.value]
 
-  uni.showModal({
+  const res = await showModal({
     title: '确认开通',
     content: `即将开通${plan.name}（${plan.price}元/月），是否继续？`,
-    success: (res) => {
-      if (res.confirm) {
-        processPayment(plan)
-      }
-    }
   })
+  if (res.confirm) {
+    processPayment(plan)
+  }
 }
 
 const processPayment = async () => {
@@ -188,7 +189,7 @@ const processPayment = async () => {
     // 2. 调用 getPayParams 获取微信支付参数
     // 3. 调用 uni.requestPayment 完成支付
 
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    await new Promise((resolve: any) => setTimeout(resolve, 1000))
 
     // 模拟支付成功，更新本地用户状态
     const storedUserInfo = uni.getStorageSync('userInfo') || {}
@@ -197,10 +198,10 @@ const processPayment = async () => {
     uni.setStorageSync('userInfo', storedUserInfo)
     currentLevel.value = selectedPlan.value
 
-    uni.showToast({ title: '开通成功', icon: 'success' })
-  } catch (e) {
+    showToast({ title: '开通成功', icon: 'success' })
+  } catch (e: any) {
     console.error('Subscribe failed:', e)
-    uni.showToast({ title: e.message || '支付失败', icon: 'none' })
+    showToast({ title: e.message || '支付失败', icon: 'none' })
   } finally {
     submitting.value = false
   }

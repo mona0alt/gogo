@@ -12,11 +12,25 @@
   </view>
 </template>
 
-<script setup>
-const props = defineProps({ product: { type: Object, required: true } })
-const emit = defineEmits(['add-to-cart'])
+<script setup lang="ts">
+interface Product {
+  id?: string
+  name?: string
+  price: number
+  originalPrice?: number
+  image?: string
+  [key: string]: any
+}
 
-const getImageUrl = () => {
+const props = defineProps<{
+  product: Product
+}>()
+
+const emit = defineEmits<{
+  'add-to-cart': [product: Product]
+}>()
+
+const getImageUrl = (): string => {
   const img = props.product.image
   return img && img.length > 0 ? img : '/static/default-product.png'
 }

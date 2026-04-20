@@ -1,7 +1,9 @@
-const cloud = require('wx-server-sdk')
-cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
+const { init, success, fail, validate } = require('../utils')
 
-const db = cloud.database()
+function getDb() {
+  const { db } = init()
+  return db
+}
 
 // 测试用户数据（用于配对页面测试）
 const mockUsers = [
@@ -135,7 +137,7 @@ const productsTemplate = [
 ]
 
 // 确保集合存在（微信云开发：向不存在的集合 add 会自动创建集合）
-async function ensureCollection(name) {
+async function ensureCollection(db, name) {
   try {
     const res = await db.collection(name).add({ data: { _temp: true, createdAt: new Date() } })
     await db.collection(name).doc(res._id).remove()
@@ -147,18 +149,22 @@ async function ensureCollection(name) {
 
 exports.main = async (event, context) => {
   const { action } = event
+  const db = getDb()
+  const _ = db.command
+
+  const err = validate(event, { action: { required: true, type: 'string' } })
+  if (err) return fail(err)
 
   if (action === 'ensureCollections') {
     const results = await Promise.all([
-      ensureCollection('groups'),
-      ensureCollection('group_matches'),
-      ensureCollection('follows')
+      ensureCollection(db, 'groups'),
+      ensureCollection(db, 'group_matches'),
+      ensureCollection(db, 'follows')
     ])
-    return {
-      success: true,
+    return success({
       message: '集合检查完成',
       results: { groups: results[0], group_matches: results[1], follows: results[2] }
-    }
+    })
   }
 
   if (action === 'init') {
@@ -245,9 +251,9 @@ exports.main = async (event, context) => {
         }
       })
 
-      return { success: true, message: '数据库初始化完成', barCount: barIds.length }
+      return success({ message: '数据库初始化完成', barCount: barIds.length })
     } catch (err) {
-      return { success: false, error: err.message }
+      return fail(err.message)
     }
   }
 
@@ -263,9 +269,9 @@ exports.main = async (event, context) => {
         db.collection('group_matches').where({}).remove(),
         db.collection('follows').where({}).remove()
       ])
-      return { success: true, message: '数据库已清空' }
+      return success({ message: '数据库已清空' })
     } catch (err) {
-      return { success: false, error: err.message }
+      return fail(err.message)
     }
   }
 
@@ -281,8 +287,7 @@ exports.main = async (event, context) => {
         db.collection('follows').count(),
         db.collection('users').count()
       ])
-      return {
-        success: true,
+      return success({
         status: 'ready',
         counts: {
           bars: barsRes.total,
@@ -294,9 +299,9 @@ exports.main = async (event, context) => {
           follows: followsRes.total,
           users: usersRes.total
         }
-      }
+      })
     } catch (err) {
-      return { success: false, status: 'not_ready', error: err.message }
+      return fail(err.message)
     }
   }
 
@@ -304,7 +309,7 @@ exports.main = async (event, context) => {
     try {
       // 先清空已有 mock 用户
       const existing = await db.collection('users').where({
-        openid: db.command.in(mockUsers.map(u => u.openid))
+        openid: _.in(mockUsers.map(u => u.openid))
       }).get()
       for (const user of existing.data) {
         await db.collection('users').doc(user._id).remove()
@@ -315,15 +320,14 @@ exports.main = async (event, context) => {
         await db.collection('users').add({ data: user })
       }
 
-      return {
-        success: true,
+      return success({
         message: `已插入 ${mockUsers.length} 条测试用户数据`,
         inserted: mockUsers.length
-      }
+      })
     } catch (err) {
-      return { success: false, error: err.message }
+      return fail(err.message)
     }
   }
 
-  return { success: false, message: '未知操作' }
+  return fail('未知操作')
 }

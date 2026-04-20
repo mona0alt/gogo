@@ -1,13 +1,33 @@
-const cloud = require('wx-server-sdk')
-cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
+const { createHandler, success, fail } = require('../utils')
 
-exports.main = async (event, context) => {
-  const { userId, barId, barName, items, totalAmount } = event
-  const db = cloud.database()
+const schema = {
+  barId: { required: true, type: 'string' },
+  barName: { required: true, type: 'string' },
+  items: { required: true, type: 'array' },
+  totalAmount: { required: true, type: 'number' }
+}
 
-  // 创建订单
+exports.main = createHandler({ schema }, async (event, context, { db, user }) => {
+  const { barId, barName, items, totalAmount, idempotencyKey } = event
+  const userId = user._id
+
+  // 幂等性检查
+  if (idempotencyKey) {
+    const existing = await db.collection('orders')
+      .where({ idempotencyKey })
+      .get()
+    if (existing.data.length > 0) {
+      const order = existing.data[0]
+      return success({ orderId: order._id, orderNo: order.orderNo, duplicate: true })
+    }
+  }
+
+  const timestamp = Date.now()
+  const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0')
+  const orderNo = `ORD${timestamp}${random}`
+
   const order = {
-    orderNo: 'ORD' + Date.now() + Math.random().toString(36).substr(2, 6).toUpperCase(),
+    orderNo,
     userId,
     barId,
     barName,
@@ -19,6 +39,7 @@ exports.main = async (event, context) => {
       productImage: item.productImage || ''
     })),
     totalAmount,
+    idempotencyKey: idempotencyKey || null,
     status: 'pending_payment',
     createdAt: new Date(),
     updatedAt: new Date()
@@ -31,5 +52,5 @@ exports.main = async (event, context) => {
     .where({ userId, barId, status: 'active' })
     .update({ data: { status: 'inactive' } })
 
-  return { success: true, orderId: res._id, orderNo: order.orderNo }
-}
+  return success({ orderId: res._id, orderNo })
+})

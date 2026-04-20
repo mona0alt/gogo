@@ -172,13 +172,16 @@
   </view>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { showToast, showLoading, hideLoading } from '@/utils/feedback'
 import { ref, computed } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { useUserStore } from '@/stores/user'
 import { callCloudFunction } from '@/utils/request'
+import { useAvatarUpload } from '@/composables/useAvatarUpload'
 
 const userStore = useUserStore()
+const { uploadAvatar } = useAvatarUpload()
 
 onShow(() => {
   if (!userStore.isLoggedIn) {
@@ -200,18 +203,18 @@ const form = ref({
   weight: '',
   zodiac: '',
   bio: '',
-  photos: []
+  photos: [] as string[]
 })
 
 const zodiacIndex = computed(() => {
   return zodiacList.indexOf(form.value.zodiac)
 })
 
-const onChooseAvatar = (e) => {
+const onChooseAvatar = (e: any) => {
   form.value.avatar = e.detail.avatarUrl || ''
 }
 
-const onZodiacChange = (e) => {
+const onZodiacChange = (e: any) => {
   form.value.zodiac = zodiacList[e.detail.value]
 }
 
@@ -223,14 +226,14 @@ const onUploadPhoto = () => {
     count: remain,
     mediaType: ['image'],
     sourceType: ['album', 'camera'],
-    success: (res) => {
-      const tempFiles = res.tempFiles.map(f => f.tempFilePath)
+    success: (res: any) => {
+      const tempFiles = res.tempFiles.map((f: any) => f.tempFilePath)
       form.value.photos.push(...tempFiles)
     }
   })
 }
 
-const onDeletePhoto = (index) => {
+const onDeletePhoto = (index: any) => {
   form.value.photos.splice(index, 1)
 }
 
@@ -240,32 +243,24 @@ const onSkip = () => {
 
 const onSubmit = async () => {
   if (!form.value.nickname.trim()) {
-    uni.showToast({ title: '请输入昵称', icon: 'none' })
+    showToast({ title: '请输入昵称', icon: 'none' })
     return
   }
   if (!form.value.gender) {
-    uni.showToast({ title: '请选择性别', icon: 'none' })
+    showToast({ title: '请选择性别', icon: 'none' })
     return
   }
 
-  uni.showLoading({ title: '保存中...', mask: true })
+  showLoading({ title: '保存中...', mask: true })
 
   try {
     // Upload avatar if it's a local temp file
     let avatarFileID = form.value.avatar
     if (form.value.avatar && (form.value.avatar.startsWith('wxfile://') || form.value.avatar.startsWith('http://tmp/'))) {
       try {
-        const uploadRes = await new Promise((resolve, reject) => {
-          wx.cloud.uploadFile({
-            cloudPath: `user-avatars/${Date.now()}.jpg`,
-            filePath: form.value.avatar,
-            success: resolve,
-            fail: reject
-          })
-        })
-        avatarFileID = uploadRes.fileID
-      } catch (uploadErr) {
-        console.warn('Avatar upload failed:', uploadErr)
+        avatarFileID = await uploadAvatar(form.value.avatar)
+      } catch {
+        // 保留本地路径，继续保存
       }
     }
 
@@ -274,7 +269,7 @@ const onSubmit = async () => {
     for (const photo of form.value.photos) {
       if (photo.startsWith('wxfile://') || photo.startsWith('http://tmp/')) {
         try {
-          const uploadRes = await new Promise((resolve, reject) => {
+          const uploadRes = await new Promise<any>((resolve, reject) => {
             wx.cloud.uploadFile({
               cloudPath: `user-photos/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`,
               filePath: photo,
@@ -307,15 +302,15 @@ const onSubmit = async () => {
     // Update local store
     await userStore.fetchUserInfo()
 
-    uni.showToast({ title: '保存成功', icon: 'success' })
+    showToast({ title: '保存成功', icon: 'success' })
     setTimeout(() => {
       uni.switchTab({ url: '/pages/index/index' })
     }, 800)
-  } catch (err) {
+  } catch (err: any) {
     console.error('Save profile failed:', err)
-    uni.showToast({ title: err.message || '保存失败，请重试', icon: 'none' })
+    showToast({ title: err.message || '保存失败，请重试', icon: 'none' })
   } finally {
-    uni.hideLoading()
+    hideLoading()
   }
 }
 
@@ -325,7 +320,6 @@ const onBack = () => {
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/variables.scss';
 
 .profile-setup-page {
   min-height: 100vh;

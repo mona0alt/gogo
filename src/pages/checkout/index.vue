@@ -27,7 +27,8 @@
   </view>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { showToast } from '@/utils/feedback'
 import { ref, computed } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { useCartStore } from '@/stores/cart'
@@ -48,35 +49,37 @@ const barStore = useBarStore()
 const orderStore = useOrderStore()
 const currentBar = computed(() => barStore.currentBar)
 const submitting = ref(false)
-const selectedCoupon = ref(null)
+const selectedCoupon = ref<any>(null)
 
 const safeCheckedItems = computed(() => cartStore.checkedCartItems || [])
 
-const totalAmount = computed(() => (cartStore.checkedCartItems || []).reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0))
+const totalAmount = computed(() => (cartStore.checkedCartItems || []).reduce((sum: any, item: any) => sum + (item.price || 0) * (item.quantity || 0), 0))
 const discountAmount = computed(() => selectedCoupon.value ? selectedCoupon.value.amount : 0)
 const payAmount = computed(() => Math.max(0, totalAmount.value - discountAmount.value))
 
-const showCouponPicker = () => { uni.showToast({ title: '暂未开放', icon: 'none' }) }
+const showCouponPicker = () => { showToast({ title: '暂未开放', icon: 'none' }) }
 
 const handleSubmit = async () => {
   if (submitting.value) return
   submitting.value = true
   try {
+    const idempotencyKey = `${userStore.userInfo?.id}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
     const orderData = {
-      barId: currentBar.value.id,
+      barId: (currentBar.value as any)?.id,
       items: safeCheckedItems.value.map(item => ({ productId: item.productId, productName: item.productName, productImage: item.productImage, price: item.price, quantity: item.quantity, specs: item.specs })),
       totalAmount: totalAmount.value,
       discountAmount: discountAmount.value,
       payAmount: payAmount.value,
-      couponId: selectedCoupon.value?.id
+      couponId: selectedCoupon.value?.id,
+      idempotencyKey
     }
     const order = await orderStore.createOrder(orderData)
-    await payOrder(order.id)
+    await payOrder(order.orderId)
     await cartStore.clearCart()
-    uni.redirectTo({ url: `/pages/order-detail/index?id=${order.id}&status=success` })
-  } catch (e) {
+    uni.redirectTo({ url: `/pages/order-detail/index?id=${order.orderId}&status=success` })
+  } catch (e: any) {
     console.error('Submit order failed:', e)
-    uni.showToast({ title: e.message || '提交失败', icon: 'none' })
+    showToast({ title: e.message || '提交失败', icon: 'none' })
   } finally { submitting.value = false }
 }
 </script>

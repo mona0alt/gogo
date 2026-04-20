@@ -37,7 +37,8 @@
   </view>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { showToast } from '@/utils/feedback'
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useBarStore } from '@/stores/bar'
 import { useCartStore } from '@/stores/cart'
@@ -45,20 +46,20 @@ import { getCategories, getProductList } from '@/api/product'
 import productCard from '@/components/product-card/index.vue'
 
 // tabBar 页面缓存后 onMounted 不会再次触发，用 onShow 补充加载
-let onShowHook = null
+let onShowHook: any = null
 
 const barStore = useBarStore()
 const cartStore = useCartStore()
 const currentBar = computed(() => barStore.currentBar)
-const categories = ref([])
+const categories = ref<any[]>([])
 const selectedCategory = ref('')
-const productList = ref([])
+const productList = ref<any[]>([])
 const loading = ref(false)
 const page = ref(1)
 const pageSize = 20
 const noMore = ref(false)
 
-const selectCategory = (id) => {
+const selectCategory = (id: any) => {
   selectedCategory.value = id
   productList.value = []
   page.value = 1
@@ -73,22 +74,22 @@ const loadMore = async () => {
 }
 
 const fetchProducts = async () => {
-  if (!currentBar.value || !currentBar.value.id) return
+  if (!currentBar.value || !(currentBar.value as any)?.id) return
   loading.value = true
   try {
-    const data = await getProductList(currentBar.value.id, { categoryId: selectedCategory.value || '', page: page.value, pageSize })
+    const data = await getProductList((currentBar.value as any)?.id, { categoryId: selectedCategory.value || '', page: page.value, pageSize })
     const list = data?.list || []
     // 确保 list 每一项都有有效 id
-    productList.value = list.filter(p => p.id).map(p => ({
+    productList.value = list.filter((p: any) => p.id).map((p: any) => ({
       id: p.id,
       name: p.name || '',
       price: p.price || 0,
       image: p.image || '',
-      barId: p.barId || currentBar.value.id,
+      barId: p.barId || (currentBar.value as any)?.id,
       categoryId: p.categoryId || ''
     }))
     if (list.length < pageSize) { noMore.value = true }
-  } catch (e) {
+  } catch (e: any) {
     console.error('Fetch products failed:', e)
     productList.value = []
   } finally {
@@ -97,26 +98,26 @@ const fetchProducts = async () => {
 }
 
 const fetchCategories = async () => {
-  if (!currentBar.value || !currentBar.value.id) return
+  if (!currentBar.value || !(currentBar.value as any)?.id) return
   try {
-    const data = await getCategories(currentBar.value.id)
+    const data = await getCategories((currentBar.value as any)?.id)
     // 确保每项都有有效 id
-    categories.value = (data?.list || []).filter(c => c.id).map(c => ({
+    categories.value = (data?.list || []).filter((c: any) => c.id).map((c: any) => ({
       id: c.id,
       name: c.name || '',
-      barId: c.barId || currentBar.value.id
+      barId: c.barId || (currentBar.value as any)?.id
     }))
     if (categories.value.length > 0 && !selectedCategory.value) {
       selectedCategory.value = categories.value[0].id
     }
-  } catch (e) {
+  } catch (e: any) {
     console.error('Fetch categories failed:', e)
     categories.value = []
   }
 }
 
-const handleAddToCart = async (product) => {
-  try { await cartStore.addItem(product, 1); uni.showToast({ title: '已加入购物车', icon: 'success' }) } catch { uni.showToast({ title: '加入失败', icon: 'none' }) }
+const handleAddToCart = async (product: any) => {
+  try { await cartStore.addItem(product, 1); showToast({ title: '已加入购物车', icon: 'success' }) } catch { showToast({ title: '加入失败', icon: 'none' }) }
 }
 
 const switchBar = () => { uni.switchTab({ url: '/pages/index/index' }) }

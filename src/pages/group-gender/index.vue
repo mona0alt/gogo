@@ -67,7 +67,8 @@
   </view>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { showToast } from '@/utils/feedback'
 import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { useUserStore } from '@/stores/user'
@@ -87,7 +88,7 @@ const onBack = () => {
 
 const onNext = () => {
   if (!selectedGender.value) {
-    uni.showToast({ title: '请选择性别', icon: 'none' })
+    showToast({ title: '请选择性别', icon: 'none' })
     return
   }
   const url = `/pages/group-time/index?targetGender=${selectedGender.value}`
@@ -99,7 +100,6 @@ const onNext = () => {
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/variables.scss';
 
 .gender-page {
   min-height: 100vh;

@@ -15,7 +15,8 @@
   </view>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { showToast } from '@/utils/feedback'
 import { ref } from 'vue'
 import { getProductList } from '@/api/product'
 import { useCartStore } from '@/stores/cart'
@@ -23,7 +24,7 @@ import productCard from '@/components/product-card/index.vue'
 
 const cartStore = useCartStore()
 const keyword = ref('')
-const products = ref([])
+const products = ref<any[]>([])
 const searched = ref(false)
 
 const search = async () => {
@@ -33,16 +34,16 @@ const search = async () => {
     const data = await getProductList('all', { keyword: keyword.value })
     products.value = data?.list || []
   } catch {
-    uni.showToast({ title: '搜索失败', icon: 'none' })
+    showToast({ title: '搜索失败', icon: 'none' })
   }
 }
 
-const handleAddToCart = async (product) => {
+const handleAddToCart = async (product: any) => {
   try {
     await cartStore.addItem(product, 1)
-    uni.showToast({ title: '已加入购物车', icon: 'success' })
+    showToast({ title: '已加入购物车', icon: 'success' })
   } catch {
-    uni.showToast({ title: '加入失败', icon: 'none' })
+    showToast({ title: '加入失败', icon: 'none' })
   }
 }
 

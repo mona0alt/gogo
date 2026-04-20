@@ -42,6 +42,29 @@
       "indexes": [
         { "name": "openid", "fields": ["openid"], "unique": true }
       ]
+    },
+    {
+      "name": "groups",
+      "indexes": [
+        { "name": "status_creator", "fields": ["status", "creatorOpenid"] },
+        { "name": "status_createdAt", "fields": ["status", "createdAt"] },
+        { "name": "creatorOpenid_status", "fields": ["creatorOpenid", "status"] }
+      ]
+    },
+    {
+      "name": "group_matches",
+      "indexes": [
+        { "name": "groupId_status", "fields": ["groupId", "status"] },
+        { "name": "fromOpenid_status_createdAt", "fields": ["fromOpenid", "status", "createdAt"] },
+        { "name": "toOpenid_status", "fields": ["toOpenid", "status"] }
+      ]
+    },
+    {
+      "name": "follows",
+      "indexes": [
+        { "name": "follower_following", "fields": ["followerOpenid", "followingOpenid"], "unique": true },
+        { "name": "follower_createdAt", "fields": ["followerOpenid", "createdAt"] }
+      ]
     }
   ],
   "sampleData": {

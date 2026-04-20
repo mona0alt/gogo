@@ -47,9 +47,9 @@
             <view class="wheel-container">
               <view class="wheel-gradient top"></view>
               <view class="wheel-indicator"></view>
-              <picker-view class="wheel-picker" :value="[startIndex]" @change="onStartChange" indicator-style="height: 80rpx;">
+              <picker-view class="wheel-picker" :value="[startIndex]" indicator-style="height: 80rpx;" @change="onStartChange">
                 <picker-view-column>
-                  <view class="wheel-item" v-for="(t, i) in timeSlots" :key="i" :class="{ active: i === startIndex }">
+                  <view v-for="(t, i) in timeSlots" :key="i" class="wheel-item" :class="{ active: i === startIndex }">
                     <text>{{ t }}</text>
                   </view>
                 </picker-view-column>
@@ -69,9 +69,9 @@
             <view class="wheel-container">
               <view class="wheel-gradient top"></view>
               <view class="wheel-indicator"></view>
-              <picker-view class="wheel-picker" :value="[endIndex]" @change="onEndChange" indicator-style="height: 80rpx;">
+              <picker-view class="wheel-picker" :value="[endIndex]" indicator-style="height: 80rpx;" @change="onEndChange">
                 <picker-view-column>
-                  <view class="wheel-item" v-for="(t, i) in timeSlots" :key="i" :class="{ active: i === endIndex }">
+                  <view v-for="(t, i) in timeSlots" :key="i" class="wheel-item" :class="{ active: i === endIndex }">
                     <text>{{ t }}</text>
                   </view>
                 </picker-view-column>
@@ -119,7 +119,9 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useUserStore } from '@/stores/user'
 
+const userStore = useUserStore()
 const targetGender = ref(0)
 
 // Generate time slots from 18:00 to 04:00
@@ -188,6 +190,10 @@ const onNext = () => {
 }
 
 onMounted(() => {
+  if (!userStore.isLoggedIn) {
+    uni.navigateTo({ url: '/pages/login/index' })
+    return
+  }
   // For non-tab pages in uni-app, we can't use defineProps
   // The page params will be handled when navigating
 })

@@ -26,11 +26,11 @@
         <view class="form-card">
           <text class="form-label">拼团标题</text>
           <input
+            v-model="form.title"
             class="form-input"
             type="text"
             placeholder="请输入"
             placeholder-class="placeholder"
-            v-model="form.title"
           />
         </view>
 
@@ -104,7 +104,10 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useUserStore } from '@/stores/user'
+
+const userStore = useUserStore()
 
 const form = ref({
   title: '',
@@ -113,6 +116,12 @@ const form = ref({
   time: '',
   groupType: '多人',
   size: '3男3女'
+})
+
+onMounted(() => {
+  if (!userStore.isLoggedIn) {
+    uni.navigateTo({ url: '/pages/login/index' })
+  }
 })
 
 const onBack = () => {

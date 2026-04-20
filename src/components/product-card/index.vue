@@ -5,7 +5,7 @@
       <text class="name text-ellipsis">{{ product.name || '' }}</text>
       <view class="price-row">
         <text class="price">¥{{ product.price || 0 }}</text>
-        <text class="original" v-if="product.originalPrice && product.originalPrice > product.price">¥{{ product.originalPrice }}</text>
+        <text v-if="product.originalPrice && product.originalPrice > product.price" class="original">¥{{ product.originalPrice }}</text>
       </view>
     </view>
     <view class="add-btn" @tap.stop="handleAddToCart"><text>+</text></view>

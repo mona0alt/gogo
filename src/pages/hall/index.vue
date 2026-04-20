@@ -55,9 +55,9 @@
 
         <view class="group-list">
           <view
-            class="group-card"
             v-for="(item, index) in groupList"
             :key="index"
+            class="group-card"
             @tap="onCardTap(item)"
           >
             <view class="card-main">
@@ -81,14 +81,14 @@
             <view class="card-footer">
               <view class="member-avatars">
                 <image
-                  class="member-avatar"
                   v-for="(avatar, i) in item.avatars.slice(0, 3)"
                   :key="i"
+                  class="member-avatar"
                   :src="avatar"
                   mode="aspectFill"
                   @error="item.avatars[i] = '/static/default-avatar.png'"
                 />
-                <view class="member-more" v-if="item.avatars.length > 3">
+                <view v-if="item.avatars.length > 3" class="member-more">
                   <text class="more-text">+{{ item.avatars.length - 3 }}</text>
                 </view>
               </view>
@@ -162,7 +162,7 @@ const featuredItem = ref({
   people: '6人'
 })
 
-const onCardTap = (item) => {
+const onCardTap = () => {
   uni.navigateTo({ url: '/pages/hall-detail/index' })
 }
 

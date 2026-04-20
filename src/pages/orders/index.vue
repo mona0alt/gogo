@@ -5,17 +5,33 @@
     </view>
     <scroll-view class="order-list" scroll-y @scrolltolower="loadMore">
       <order-card v-for="order in displayOrders" :key="order.id" :order="order" @refresh="fetchOrders" />
-      <view class="loading" v-if="loading"><text>加载中...</text></view>
-      <view class="no-more" v-if="noMore && displayOrders.length > 0"><text>没有更多了</text></view>
-      <view class="empty" v-if="!loading && displayOrders.length === 0"><text class="icon">📋</text><text class="text">暂无订单</text></view>
+      <view v-if="loading" class="loading"><text>加载中...</text></view>
+      <view v-if="noMore && displayOrders.length > 0" class="no-more"><text>没有更多了</text></view>
+      <view v-if="!loading && displayOrders.length === 0" class="empty"><text class="icon">📋</text><text class="text">暂无订单</text></view>
     </scroll-view>
   </view>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
 import { useOrderStore } from '@/stores/order'
+import { useUserStore } from '@/stores/user'
 import orderCard from '@/components/order-card/index.vue'
+
+const userStore = useUserStore()
+
+const checkLogin = () => {
+  if (!userStore.isLoggedIn) {
+    uni.navigateTo({ url: '/pages/login/index' })
+    return false
+  }
+  return true
+}
+
+onShow(() => {
+  if (checkLogin()) fetchOrders()
+})
 
 const orderStore = useOrderStore()
 const tabs = [
@@ -57,7 +73,7 @@ const fetchOrders = async () => {
     const list = data?.list || []
     if (page.value === 1) { orderStore.orders = list } else { orderStore.orders.push(...list) }
     if (list.length < pageSize) { noMore.value = true }
-  } catch (e) { uni.showToast({ title: '加载失败', icon: 'none' }) } finally { loading.value = false }
+  } catch { uni.showToast({ title: '加载失败', icon: 'none' }) } finally { loading.value = false }
 }
 
 onMounted(() => { fetchOrders() })

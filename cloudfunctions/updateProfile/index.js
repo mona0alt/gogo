@@ -22,7 +22,17 @@ exports.main = async (event, context) => {
     profileCompleted: true
   }
 
-  if (avatar !== undefined) updateData.avatar = avatar
+  if (avatar !== undefined && avatar !== user.avatar) {
+    updateData.avatar = avatar
+    // 删除旧头像，避免云存储堆积
+    if (user.avatar && user.avatar.startsWith('cloud://')) {
+      try {
+        await cloud.deleteFile({ fileList: [user.avatar] })
+      } catch (e) {
+        console.log('Delete old avatar failed:', e)
+      }
+    }
+  }
   if (nickname !== undefined) updateData.nickname = nickname
   if (age !== undefined) updateData.age = age
   if (gender !== undefined) updateData.gender = gender

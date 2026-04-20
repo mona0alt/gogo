@@ -5,16 +5,16 @@
       <text class="status" :class="`status--${order.status}`">{{ statusText }}</text>
     </view>
     <view class="products">
-      <image v-for="(item, index) in displayItems" :key="item.id" class="product-img" :src="item.productImage || '/static/default-product.png'" mode="aspectFill" />
-      <text class="more" v-if="displayItems.length < itemCount">+{{ itemCount - displayItems.length }}</text>
+      <image v-for="item in displayItems" :key="item.id" class="product-img" :src="item.productImage || '/static/default-product.png'" mode="aspectFill" />
+      <text v-if="displayItems.length < itemCount" class="more">+{{ itemCount - displayItems.length }}</text>
     </view>
     <view class="footer">
       <text class="amount">¥{{ order.totalAmount || order.payAmount || 0 }}</text>
       <text class="time">{{ formatTime(order.createdAt || order.createTime) }}</text>
     </view>
-    <view class="actions" v-if="showActions">
-      <button class="btn btn--secondary" v-if="order.status === 'pending_payment'" @tap.stop="handleCancel">取消订单</button>
-      <button class="btn btn--primary" v-if="order.status === 'pending_payment'" @tap.stop="handlePay">去支付</button>
+    <view v-if="showActions" class="actions">
+      <button v-if="order.status === 'pending_payment'" class="btn btn--secondary" @tap.stop="handleCancel">取消订单</button>
+      <button v-if="order.status === 'pending_payment'" class="btn btn--primary" @tap.stop="handlePay">去支付</button>
     </view>
   </view>
 </template>

@@ -38,11 +38,22 @@ exports.main = async (event, context) => {
     if (nickname || avatar) {
       const updateData = { updatedAt: new Date() }
       if (nickname) updateData.nickname = nickname
-      if (avatar) updateData.avatar = avatar
-      await db.collection('users').doc(user._id).update({ data: updateData })
-      // 同步更新内存对象，确保返回最新值
-      if (nickname) user.nickname = nickname
-      if (avatar) user.avatar = avatar
+      if (avatar && avatar !== user.avatar) {
+        updateData.avatar = avatar
+        // 删除旧头像，避免云存储堆积
+        if (user.avatar && user.avatar.startsWith('cloud://')) {
+          try {
+            await cloud.deleteFile({ fileList: [user.avatar] })
+          } catch (e) {
+            console.log('Delete old avatar failed:', e)
+          }
+        }
+      }
+      if (Object.keys(updateData).length > 1) {
+        await db.collection('users').doc(user._id).update({ data: updateData })
+        if (nickname) user.nickname = nickname
+        if (avatar) user.avatar = avatar
+      }
     }
   }
 

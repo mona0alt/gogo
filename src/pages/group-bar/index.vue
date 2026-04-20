@@ -19,7 +19,7 @@
       </view>
 
       <!-- Selected Bar with Packages -->
-      <view class="selected-bar" v-if="selectedBar">
+      <view v-if="selectedBar" class="selected-bar">
         <view class="bar-header" @tap="toggleExpand">
           <view class="bar-info">
             <view class="bar-img-wrap">
@@ -37,7 +37,7 @@
         </view>
 
         <!-- Package Selection -->
-        <view class="package-section" v-if="expanded">
+        <view v-if="expanded" class="package-section">
           <text class="package-label">Available Packages</text>
           <view class="package-list">
             <view
@@ -82,9 +82,9 @@
         <text class="other-label">Other Destinations</text>
         <view class="other-list">
           <view
-            class="other-bar"
             v-for="(bar, index) in otherBars"
             :key="index"
+            class="other-bar"
             @tap="selectBar(bar)"
           >
             <view class="other-info">
@@ -113,9 +113,11 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useUserStore } from '@/stores/user'
 import { useBarStore } from '@/stores/bar'
 import { callCloudFunction } from '@/utils/request'
 
+const userStore = useUserStore()
 const barStore = useBarStore()
 
 const targetGender = ref(0)
@@ -210,6 +212,10 @@ const onNext = async () => {
 }
 
 onMounted(() => {
+  if (!userStore.isLoggedIn) {
+    uni.navigateTo({ url: '/pages/login/index' })
+    return
+  }
   const pages = getCurrentPages()
   const current = pages[pages.length - 1]
   if (current && current.options) {

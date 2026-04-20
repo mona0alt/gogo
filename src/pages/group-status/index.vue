@@ -14,7 +14,7 @@
     <!-- Messages -->
     <scroll-view class="message-list" scroll-y :scroll-into-view="scrollToId">
       <!-- System Message: Paired -->
-      <view class="msg-system" v-if="groupStatus === 'paired' || groupStatus === 'paid' || groupStatus === 'confirmed'">
+      <view v-if="groupStatus === 'paired' || groupStatus === 'paid' || groupStatus === 'confirmed'" class="msg-system">
         <text class="msg-time">{{ formatTime(groupInfo?.updatedAt) }}</text>
         <view class="msg-row">
           <view class="agent-avatar">
@@ -27,7 +27,7 @@
       </view>
 
       <!-- Order Card -->
-      <view class="msg-order" v-if="groupStatus === 'paired' || groupStatus === 'paid' || groupStatus === 'confirmed'">
+      <view v-if="groupStatus === 'paired' || groupStatus === 'paid' || groupStatus === 'confirmed'" class="msg-order">
         <view class="msg-row with-indent">
           <view class="order-card">
             <view class="order-img-wrap">
@@ -39,11 +39,11 @@
               <text class="order-package">{{ groupInfo?.packageType === '198' ? '畅饮套餐' : '台费入场' }}</text>
               <view class="order-footer">
                 <text class="order-price">&#165;{{ groupInfo?.packageType === '198' ? '198.00' : '40.00' }}</text>
-                <view class="pay-btn" v-if="groupStatus === 'paired'" @tap="onPay">
+                <view v-if="groupStatus === 'paired'" class="pay-btn" @tap="onPay">
                   <text>去支付</text>
                   <text class="pay-arrow">&#8250;</text>
                 </view>
-                <text class="paid-text" v-else>已支付</text>
+                <text v-else class="paid-text">已支付</text>
               </view>
             </view>
           </view>
@@ -51,7 +51,7 @@
       </view>
 
       <!-- System Message: Paid waiting -->
-      <view class="msg-system" v-if="groupStatus === 'paid' || groupStatus === 'confirmed'">
+      <view v-if="groupStatus === 'paid' || groupStatus === 'confirmed'" class="msg-system">
         <view class="msg-row">
           <view class="agent-avatar">
             <text class="agent-icon">&#128100;</text>
@@ -63,7 +63,7 @@
       </view>
 
       <!-- Table Number Notification -->
-      <view class="msg-system" v-if="groupStatus === 'confirmed'">
+      <view v-if="groupStatus === 'confirmed'" class="msg-system">
         <view class="msg-row">
           <view class="agent-avatar">
             <text class="agent-icon">&#128276;</text>
@@ -75,7 +75,7 @@
       </view>
 
       <!-- Matching State -->
-      <view class="msg-system" v-if="groupStatus === 'matching'">
+      <view v-if="groupStatus === 'matching'" class="msg-system">
         <view class="msg-row">
           <view class="agent-avatar">
             <text class="agent-icon">&#128100;</text>
@@ -87,7 +87,7 @@
       </view>
 
       <!-- Empty State -->
-      <view class="empty-state" v-if="!groupInfo && !loading">
+      <view v-if="!groupInfo && !loading" class="empty-state">
         <text class="empty-icon">&#128172;</text>
         <text class="empty-title">暂无消息</text>
         <text class="empty-desc">发起拼桌后，配对状态会显示在这里</text>
@@ -98,7 +98,7 @@
     </scroll-view>
 
     <!-- Bottom Nav (TabBar replacement for non-tab page) -->
-    <view class="bottom-nav" v-if="false">
+    <view v-if="false" class="bottom-nav">
       <!-- This page is not a tabBar page, so no tabBar here -->
     </view>
   </view>
@@ -158,6 +158,10 @@ const onPay = () => {
 }
 
 onMounted(() => {
+  if (!userStore.isLoggedIn) {
+    uni.navigateTo({ url: '/pages/login/index' })
+    return
+  }
   fetchGroupStatus()
 })
 </script>

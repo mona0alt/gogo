@@ -5,15 +5,15 @@
       <text class="nav-title">关注</text>
     </view>
 
-    <scroll-view class="scroll-content" scroll-y @scrolltolower="onLoadMore" refresher-enabled :refresher-triggered="refreshing" @refresherrefresh="onRefresh">
+    <scroll-view class="scroll-content" scroll-y refresher-enabled :refresher-triggered="refreshing" @scrolltolower="onLoadMore" @refresherrefresh="onRefresh">
       <!-- Follow List -->
-      <view class="follow-list" v-if="followList.length > 0">
-        <view class="follow-card" v-for="(item, index) in followList" :key="index">
+      <view v-if="followList.length > 0" class="follow-list">
+        <view v-for="(item, index) in followList" :key="index" class="follow-card">
           <image class="follow-avatar" :src="item.userInfo?.avatar || '/static/default-avatar.png'" mode="aspectFill" @error="item.userInfo.avatar = '/static/default-avatar.png'" />
           <view class="follow-info">
             <text class="follow-name">{{ item.userInfo?.nickname || '匿名用户' }}</text>
-            <text class="follow-meta" v-if="item.userInfo?.age">{{ item.userInfo.age }}岁 · {{ item.userInfo.gender === 1 ? '男' : '女' }}</text>
-            <text class="follow-bio" v-if="item.userInfo?.bio">{{ item.userInfo.bio }}</text>
+            <text v-if="item.userInfo?.age" class="follow-meta">{{ item.userInfo.age }}岁 · {{ item.userInfo.gender === 1 ? '男' : '女' }}</text>
+            <text v-if="item.userInfo?.bio" class="follow-bio">{{ item.userInfo.bio }}</text>
           </view>
 
           <view class="follow-action" @tap="unfollow(item.openid, index)">
@@ -23,17 +23,17 @@
       </view>
 
       <!-- Empty State -->
-      <view class="empty-state" v-else-if="!loading">
+      <view v-else-if="!loading" class="empty-state">
         <text class="empty-icon">&#x2661;</text>
         <text class="empty-title">暂无关注</text>
         <text class="empty-desc">在大厅发现感兴趣的拼桌，点击关注即可在这里查看</text>
       </view>
 
-      <view class="loading" v-if="loading && followList.length === 0">
+      <view v-if="loading && followList.length === 0" class="loading">
         <text>加载中...</text>
       </view>
 
-      <view class="no-more" v-if="noMore && followList.length > 0">
+      <view v-if="noMore && followList.length > 0" class="no-more">
         <text>没有更多了</text>
       </view>
 
@@ -43,8 +43,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
 import { callCloudFunction } from '@/utils/request'
+import { useUserStore } from '@/stores/user'
+
+const userStore = useUserStore()
 
 const followList = ref([])
 const loading = ref(false)
@@ -70,7 +74,7 @@ const fetchList = async () => {
     if (list.length < pageSize) {
       noMore.value = true
     }
-  } catch (e) {
+  } catch {
     uni.showToast({ title: '加载失败', icon: 'none' })
   } finally {
     loading.value = false
@@ -110,8 +114,17 @@ const unfollow = async (openid, index) => {
   })
 }
 
-onMounted(() => {
+const checkLoginAndFetch = () => {
+  if (!userStore.isLoggedIn) {
+    followList.value = []
+    uni.navigateTo({ url: '/pages/login/index' })
+    return
+  }
   fetchList()
+}
+
+onShow(() => {
+  checkLoginAndFetch()
 })
 </script>
 

@@ -13,8 +13,8 @@
       <!-- Card Stack -->
       <view class="card-stack">
         <view
-          class="user-card"
           v-if="currentUser"
+          class="user-card"
           :class="{ 'swipe-left': swipeDirection === 'left', 'swipe-right': swipeDirection === 'right' }"
           :style="cardStyle"
           @touchstart="onTouchStart"
@@ -40,36 +40,36 @@
           <view class="info-section">
             <view class="name-row">
               <text class="user-name">{{ currentUser.nickname || '匿名用户' }}</text>
-              <view class="tag-chip" v-if="currentUser.gender">
+              <view v-if="currentUser.gender" class="tag-chip">
                 <text class="tag-icon">{{ currentUser.gender === 1 ? '&#x2642;' : '&#x2640;' }}</text>
                 <text class="tag-value">{{ currentUser.age || 0 }}</text>
               </view>
-              <view class="tag-chip" v-if="currentUser.zodiac">
+              <view v-if="currentUser.zodiac" class="tag-chip">
                 <text class="tag-value">{{ currentUser.zodiac }}</text>
               </view>
             </view>
 
             <!-- Stats -->
-            <view class="stats-row" v-if="currentUser.height || currentUser.weight">
-              <view class="stat-chip" v-if="currentUser.height">
+            <view v-if="currentUser.height || currentUser.weight" class="stats-row">
+              <view v-if="currentUser.height" class="stat-chip">
                 <text>{{ currentUser.height }}cm</text>
               </view>
-              <view class="stat-chip" v-if="currentUser.weight">
+              <view v-if="currentUser.weight" class="stat-chip">
                 <text>{{ currentUser.weight }}KG</text>
               </view>
-              <view class="stat-chip" v-if="currentUser.zodiac">
+              <view v-if="currentUser.zodiac" class="stat-chip">
                 <text>{{ currentUser.zodiac }}</text>
               </view>
             </view>
 
             <!-- Bio -->
-            <view class="bio-section" v-if="currentUser.bio">
+            <view v-if="currentUser.bio" class="bio-section">
               <text class="bio-label">关于我</text>
               <text class="bio-text">{{ currentUser.bio }}</text>
             </view>
 
             <!-- Interests -->
-            <view class="interest-section" v-if="currentUser.interests">
+            <view v-if="currentUser.interests" class="interest-section">
               <view class="interest-card">
                 <text class="interest-label">兴趣爱好</text>
                 <text class="interest-value">{{ currentUser.interests }}</text>
@@ -79,21 +79,21 @@
         </view>
 
         <!-- Empty State -->
-        <view class="empty-card" v-if="!currentUser && !loading">
+        <view v-if="!currentUser && !loading" class="empty-card">
           <text class="empty-icon">&#x1F37A;</text>
           <text class="empty-title">暂时没有更多推荐</text>
           <text class="empty-desc">稍后再来看看吧</text>
         </view>
 
         <!-- Loading -->
-        <view class="loading-card" v-if="loading">
+        <view v-if="loading" class="loading-card">
           <text class="loading-text">加载中...</text>
         </view>
       </view>
     </view>
 
     <!-- Action Bar -->
-    <view class="action-bar" v-if="currentUser">
+    <view v-if="currentUser" class="action-bar">
       <view class="action-btn close" @tap="onSkip">
         <text class="action-icon">&#x2715;</text>
       </view>
@@ -106,7 +106,7 @@
     </view>
 
     <!-- Exit Button -->
-    <view class="exit-bar" v-if="currentUser">
+    <view v-if="currentUser" class="exit-bar">
       <text class="exit-text" @tap="onBack">&#x2190; 退出配对</text>
     </view>
   </view>
@@ -114,7 +114,10 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useUserStore } from '@/stores/user'
 import { callCloudFunction } from '@/utils/request'
+
+const userStore = useUserStore()
 
 const groupId = ref('')
 
@@ -175,7 +178,7 @@ const fetchRecommendUsers = async () => {
     if (userList.value.length === 0) {
       uni.showToast({ title: '暂无推荐用户', icon: 'none' })
     }
-  } catch (e) {
+  } catch {
     uni.showToast({ title: '加载失败', icon: 'none' })
   } finally {
     loading.value = false
@@ -309,6 +312,10 @@ const onBack = () => {
 }
 
 onMounted(() => {
+  if (!userStore.isLoggedIn) {
+    uni.navigateTo({ url: '/pages/login/index' })
+    return
+  }
   const pages = getCurrentPages()
   const current = pages[pages.length - 1]
   if (current && current.options) {

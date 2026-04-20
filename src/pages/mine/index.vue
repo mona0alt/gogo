@@ -2,23 +2,23 @@
   <view class="page">
     <!-- 用户信息区 -->
     <view class="user-section">
-      <view class="user-card" v-if="showUser" @tap="goToProfile">
+      <view v-if="showUser" class="user-card" @tap="goToProfile">
         <view class="user-info">
           <view class="avatar-wrap">
             <image class="avatar" :src="localAvatar" mode="aspectFill" @error="localAvatar = '/static/default-avatar.png'" />
-            <view class="member-tag" v-if="localIsLogin && localMemberLevel">
+            <view v-if="localIsLogin && localMemberLevel" class="member-tag">
               <text class="member-text">{{ localMemberLevel === 'svip' ? 'SVIP' : 'VIP' }}</text>
             </view>
           </view>
           <view class="info">
             <text class="nickname">{{ localNickname }}</text>
-            <text class="sub-text" v-if="localIsLogin">{{ localMemberLevel ? '尊贵的会员用户' : '普通用户' }}</text>
-            <text class="sub-text" v-else>点击登录</text>
+            <text v-if="localIsLogin" class="sub-text">{{ localMemberLevel ? '尊贵的会员用户' : '普通用户' }}</text>
+            <text v-else class="sub-text">点击登录</text>
           </view>
         </view>
         <text class="arrow">&#x203A;</text>
       </view>
-      <view class="user-card" v-else>
+      <view v-else class="user-card">
         <view class="user-info">
           <view class="avatar-wrap">
             <image class="avatar" src="/static/default-avatar.png" mode="aspectFill" />
@@ -31,7 +31,7 @@
     </view>
 
     <!-- 统计区域 -->
-    <view class="stats-card" v-if="localIsLogin">
+    <view v-if="localIsLogin" class="stats-card">
       <view class="stat-item" @tap="goToOrders('all')">
         <text class="num">{{ stats.orderCount }}</text>
         <text class="label">订单</text>
@@ -49,7 +49,7 @@
     </view>
 
     <!-- 活动轮播 -->
-    <view class="banner-section" v-if="banners.length > 0">
+    <view v-if="banners.length > 0" class="banner-section">
       <swiper class="banner-swiper" :indicator-dots="false" :autoplay="true" :interval="4000" :duration="500" :circular="true" @change="onBannerChange">
         <swiper-item v-for="(banner, index) in banners" :key="index" @tap="onBannerTap(banner)">
           <view class="banner-item">
@@ -74,7 +74,7 @@
               <text class="icon-text">&#x1F48C;</text>
             </view>
             <text class="label">邀请我的</text>
-            <view class="badge" v-if="inviteCount > 0">
+            <view v-if="inviteCount > 0" class="badge">
               <text class="badge-text">{{ inviteCount }}</text>
             </view>
           </view>
@@ -140,7 +140,7 @@
       </view>
     </view>
 
-    <button class="logout-btn" v-if="localIsLogin" @tap="handleLogout">退出登录</button>
+    <button v-if="localIsLogin" class="logout-btn" @tap="handleLogout">退出登录</button>
   </view>
 </template>
 
@@ -223,7 +223,7 @@ const fetchInviteCount = async () => {
   try {
     const res = await callCloudFunction('getMatchInvites', { status: 'pending', page: 1, pageSize: 1 })
     inviteCount.value = res.total || 0
-  } catch (e) {
+  } catch {
     // ignore
   }
 }
@@ -239,7 +239,7 @@ const goToProfile = () => {
   }
 }
 
-const goToOrders = (status) => { uni.navigateTo({ url: '/pages/orders/index' }) }
+const goToOrders = () => { uni.navigateTo({ url: '/pages/orders/index' }) }
 const goToInvites = () => { uni.navigateTo({ url: '/pages/match-invites/index' }) }
 const goToMember = () => { uni.navigateTo({ url: '/pages/member/index' }) }
 const goToWineStorage = () => { uni.navigateTo({ url: '/pages/wine-storage/index' }) }
@@ -247,7 +247,18 @@ const goToCoupons = () => { uni.navigateTo({ url: '/pages/coupons/index' }) }
 const goToAddress = () => { uni.navigateTo({ url: '/pages/address/index' }) }
 const goToHelp = () => { uni.navigateTo({ url: '/pages/help/index' }) }
 const goToAbout = () => { uni.navigateTo({ url: '/pages/about/index' }) }
-const handleLogout = () => { uni.showModal({ title: '确认退出', content: '确定要退出登录吗？', success: (res) => { if (res.confirm) { userStore.logout() } } }) }
+const handleLogout = () => {
+  uni.showModal({
+    title: '确认退出',
+    content: '确定要退出登录吗？',
+    success: (res) => {
+      if (res.confirm) {
+        userStore.logout()
+        refreshView()
+      }
+    }
+  })
+}
 </script>
 
 <style lang="scss" scoped>

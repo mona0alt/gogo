@@ -13,8 +13,8 @@
         <text class="separator">|</text>
         <text class="minimum">最低消费 ¥{{ bar.minimumSpend || 0 }}</text>
       </view>
-      <view class="tags" v-if="displayTags.length">
-        <text class="tag-small" v-for="tag in displayTags" :key="tag">{{ tag }}</text>
+      <view v-if="displayTags.length" class="tags">
+        <text v-for="tag in displayTags" :key="tag" class="tag-small">{{ tag }}</text>
       </view>
     </view>
   </view>

@@ -40,12 +40,28 @@
 
 <script setup>
 import { ref } from 'vue'
+import { onLoad } from '@dcloudio/uni-app'
 import { useUserStore } from '@/stores/user'
 
 const userStore = useUserStore()
 const step = ref(1)
 const tempNickname = ref('')
 const tempAvatar = ref('')
+
+// 老用户已有登录态时静默登录，避免重复选择头像
+onLoad(() => {
+  const token = uni.getStorageSync('token')
+  const storedUserInfo = uni.getStorageSync('userInfo')
+  if (token && storedUserInfo && storedUserInfo.nickname) {
+    uni.showLoading({ title: '登录中...', mask: true })
+    userStore.login()
+      .then(() => uni.switchTab({ url: '/pages/index/index' }))
+      .catch((err) => {
+        console.error('Silent login failed:', err)
+        uni.hideLoading()
+      })
+  }
+})
 
 const onLoginClick = () => {
   step.value = 2
@@ -82,18 +98,23 @@ const onConfirmLogin = async () => {
       return
     }
 
-    // 2. 上传头像到云存储
+    // 2. 上传头像到云存储（失败时不阻断登录）
     let avatarFileID = ''
     if (tempAvatar.value) {
-      const uploadRes = await new Promise((resolve, reject) => {
-        wx.cloud.uploadFile({
-          cloudPath: `user-avatars/${Date.now()}.jpg`,
-          filePath: tempAvatar.value,
-          success: resolve,
-          fail: reject
+      try {
+        const uploadRes = await new Promise((resolve, reject) => {
+          wx.cloud.uploadFile({
+            cloudPath: `user-avatars/${Date.now()}.jpg`,
+            filePath: tempAvatar.value,
+            success: resolve,
+            fail: reject
+          })
         })
-      })
-      avatarFileID = uploadRes.fileID
+        avatarFileID = uploadRes.fileID
+      } catch (uploadErr) {
+        console.warn('Avatar upload failed:', uploadErr)
+        // 继续登录，后端会使用默认头像
+      }
     }
 
     // 3. 调用登录接口

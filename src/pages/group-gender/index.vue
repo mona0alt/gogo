@@ -32,7 +32,7 @@
             <text class="gender-name">小哥哥</text>
             <text class="gender-en">Gentleman</text>
           </view>
-          <view class="gender-check" v-if="selectedGender === 1">
+          <view v-if="selectedGender === 1" class="gender-check">
             <text class="check-icon">&#x2713;</text>
           </view>
         </view>
@@ -50,7 +50,7 @@
             <text class="gender-name">小姐姐</text>
             <text class="gender-en">Lady</text>
           </view>
-          <view class="gender-check" v-if="selectedGender === 2">
+          <view v-if="selectedGender === 2" class="gender-check">
             <text class="check-icon">&#x2713;</text>
           </view>
         </view>
@@ -69,8 +69,17 @@
 
 <script setup>
 import { ref } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
+import { useUserStore } from '@/stores/user'
 
+const userStore = useUserStore()
 const selectedGender = ref(0)
+
+onShow(() => {
+  if (!userStore.isLoggedIn) {
+    uni.navigateTo({ url: '/pages/login/index' })
+  }
+})
 
 const onBack = () => {
   uni.navigateBack()

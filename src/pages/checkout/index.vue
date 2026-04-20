@@ -5,9 +5,9 @@
     </view>
     <view class="section items-section">
       <view class="section-title">商品清单</view>
-      <view class="item" v-for="item in safeCheckedItems" :key="item.id">
+      <view v-for="item in safeCheckedItems" :key="item.id" class="item">
         <image class="img" :src="item.productImage" mode="aspectFill" />
-        <view class="info"><text class="name">{{ item.productName }}</text><text class="specs" v-if="item.specs">{{ item.specs }}</text></view>
+        <view class="info"><text class="name">{{ item.productName }}</text><text v-if="item.specs" class="specs">{{ item.specs }}</text></view>
         <view class="right"><text class="price">¥{{ item.price }}</text><text class="qty">x{{ item.quantity }}</text></view>
       </view>
     </view>
@@ -17,7 +17,7 @@
     </view>
     <view class="section amount-section">
       <view class="row"><text class="label">商品金额</text><text class="value">¥{{ totalAmount }}</text></view>
-      <view class="row" v-if="discountAmount > 0"><text class="label">优惠金额</text><text class="value discount">-¥{{ discountAmount }}</text></view>
+      <view v-if="discountAmount > 0" class="row"><text class="label">优惠金额</text><text class="value discount">-¥{{ discountAmount }}</text></view>
       <view class="row total"><text class="label">实付金额</text><text class="value">¥{{ payAmount }}</text></view>
     </view>
     <view class="bottom-bar">
@@ -29,12 +29,21 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
 import { useCartStore } from '@/stores/cart'
 import { useBarStore } from '@/stores/bar'
 import { useOrderStore } from '@/stores/order'
+import { useUserStore } from '@/stores/user'
 import { payOrder } from '@/api/order'
 
 const cartStore = useCartStore()
+const userStore = useUserStore()
+
+onShow(() => {
+  if (!userStore.isLoggedIn) {
+    uni.navigateTo({ url: '/pages/login/index' })
+  }
+})
 const barStore = useBarStore()
 const orderStore = useOrderStore()
 const currentBar = computed(() => barStore.currentBar)

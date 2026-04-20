@@ -14,8 +14,8 @@
       <view class="info-row"><text class="icon">🕐</text><text class="text">{{ bar?.businessHours }}</text></view>
       <view class="info-row"><text class="icon">📞</text><text class="text" @tap="callBar">{{ bar?.phone }}</text></view>
     </view>
-    <view class="tags-section" v-if="bar?.tags?.length">
-      <text class="tag" v-for="tag in bar.tags" :key="tag">{{ tag }}</text>
+    <view v-if="bar?.tags?.length" class="tags-section">
+      <text v-for="tag in bar.tags" :key="tag" class="tag">{{ tag }}</text>
     </view>
     <view class="actions">
       <button class="btn btn--secondary" @tap="handleStoreWine">存酒</button>
@@ -40,7 +40,7 @@ onMounted(async () => {
   const currentPage = pages[pages.length - 1]
   const id = currentPage?.options?.id
   if (id) {
-    try { bar.value = await barStore.fetchBarDetail(id) } catch (e) { uni.showToast({ title: '加载失败', icon: 'none' }) }
+    try { bar.value = await barStore.fetchBarDetail(id) } catch { uni.showToast({ title: '加载失败', icon: 'none' }) }
   }
 })
 </script>

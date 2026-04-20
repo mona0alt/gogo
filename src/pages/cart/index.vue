@@ -2,9 +2,9 @@
   <view class="page">
     <view class="header">
       <text class="title">购物车</text>
-      <text class="clear" @tap="clearCart" v-if="cartStore.items.length > 0">清空</text>
+      <text v-if="cartStore.items.length > 0" class="clear" @tap="clearCart">清空</text>
     </view>
-    <scroll-view class="cart-list" scroll-y v-if="cartStore.items.length > 0">
+    <scroll-view v-if="cartStore.items.length > 0" class="cart-list" scroll-y>
       <cart-item
         v-for="item in cartStore.items"
         :key="item.id"
@@ -13,11 +13,11 @@
         @remove="handleRemove"
       />
     </scroll-view>
-    <view class="empty" v-else>
+    <view v-else class="empty">
       <text>购物车是空的</text>
       <button class="btn btn--primary" @tap="goToOrder">去点单</button>
     </view>
-    <view class="footer" v-if="cartStore.items.length > 0">
+    <view v-if="cartStore.items.length > 0" class="footer">
       <view class="total">
         <text class="label">合计：</text>
         <text class="amount">¥{{ cartStore.totalAmount }}</text>
@@ -28,15 +28,24 @@
 </template>
 
 <script setup>
+import { onShow } from '@dcloudio/uni-app'
 import { useCartStore } from '@/stores/cart'
+import { useUserStore } from '@/stores/user'
 import cartItem from '@/components/cart-item/index.vue'
 
 const cartStore = useCartStore()
+const userStore = useUserStore()
+
+onShow(() => {
+  if (!userStore.isLoggedIn) {
+    uni.navigateTo({ url: '/pages/login/index' })
+  }
+})
 
 const handleUpdateQuantity = async (itemId, quantity) => {
   try {
     await cartStore.updateQuantity(itemId, quantity)
-  } catch (e) {
+  } catch {
     uni.showToast({ title: '更新失败', icon: 'none' })
   }
 }
@@ -44,7 +53,7 @@ const handleUpdateQuantity = async (itemId, quantity) => {
 const handleRemove = async (itemId) => {
   try {
     await cartStore.removeItem(itemId)
-  } catch (e) {
+  } catch {
     uni.showToast({ title: '删除失败', icon: 'none' })
   }
 }
@@ -52,7 +61,7 @@ const handleRemove = async (itemId) => {
 const clearCart = async () => {
   try {
     await cartStore.clearCart()
-  } catch (e) {
+  } catch {
     uni.showToast({ title: '清空失败', icon: 'none' })
   }
 }

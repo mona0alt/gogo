@@ -9,14 +9,14 @@
       <view class="nav-right"></view>
     </view>
 
-    <scroll-view class="scroll-content" scroll-y @scrolltolower="onLoadMore" refresher-enabled :refresher-triggered="refreshing" @refresherrefresh="onRefresh">
-      <view class="invite-list" v-if="inviteList.length > 0">
-        <view class="invite-card" v-for="(item, index) in inviteList" :key="index">
+    <scroll-view class="scroll-content" scroll-y refresher-enabled :refresher-triggered="refreshing" @scrolltolower="onLoadMore" @refresherrefresh="onRefresh">
+      <view v-if="inviteList.length > 0" class="invite-list">
+        <view v-for="(item, index) in inviteList" :key="index" class="invite-card">
           <view class="invite-header">
             <image class="invite-avatar" :src="item.fromUser?.avatar || '/static/default-avatar.png'" mode="aspectFill" @error="item.fromUser && (item.fromUser.avatar = '/static/default-avatar.png')" />
             <view class="invite-user-info">
               <text class="invite-nickname">{{ item.fromUser?.nickname || '匿名用户' }}</text>
-              <text class="invite-meta" v-if="item.fromUser?.age">{{ item.fromUser.age }}岁</text>
+              <text v-if="item.fromUser?.age" class="invite-meta">{{ item.fromUser.age }}岁</text>
             </view>
             <text class="invite-time">{{ formatTime(item.createdAt) }}</text>
           </view>
@@ -36,28 +36,28 @@
             </view>
           </view>
 
-          <view class="invite-actions" v-if="item.status === 'pending'">
+          <view v-if="item.status === 'pending'" class="invite-actions">
             <button class="action-btn reject" @tap="respond(item._id, 'reject')">拒绝</button>
             <button class="action-btn accept" @tap="respond(item._id, 'accept')">接受</button>
           </view>
 
-          <view class="invite-status" v-else>
+          <view v-else class="invite-status">
             <text class="status-text" :class="item.status">{{ statusText(item.status) }}</text>
           </view>
         </view>
       </view>
 
-      <view class="empty-state" v-else-if="!loading">
+      <view v-else-if="!loading" class="empty-state">
         <text class="empty-icon">&#x1F48C;</text>
         <text class="empty-title">暂无邀请</text>
         <text class="empty-desc">有人向您发起拼桌邀请时会显示在这里</text>
       </view>
 
-      <view class="loading" v-if="loading && inviteList.length === 0">
+      <view v-if="loading && inviteList.length === 0" class="loading">
         <text>加载中...</text>
       </view>
 
-      <view class="no-more" v-if="noMore && inviteList.length > 0">
+      <view v-if="noMore && inviteList.length > 0" class="no-more">
         <text>没有更多了</text>
       </view>
 
@@ -68,8 +68,10 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useUserStore } from '@/stores/user'
 import { callCloudFunction } from '@/utils/request'
 
+const userStore = useUserStore()
 const inviteList = ref([])
 const loading = ref(false)
 const noMore = ref(false)
@@ -105,13 +107,21 @@ const fetchList = async () => {
     if (list.length < pageSize) {
       noMore.value = true
     }
-  } catch (e) {
+  } catch {
     uni.showToast({ title: '加载失败', icon: 'none' })
   } finally {
     loading.value = false
     refreshing.value = false
   }
 }
+
+onMounted(() => {
+  if (!userStore.isLoggedIn) {
+    uni.navigateTo({ url: '/pages/login/index' })
+    return
+  }
+  fetchList()
+})
 
 const onRefresh = () => {
   refreshing.value = true

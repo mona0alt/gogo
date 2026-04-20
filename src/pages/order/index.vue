@@ -1,6 +1,6 @@
 <template>
   <view class="page">
-    <view class="bar-header" v-if="currentBar">
+    <view v-if="currentBar" class="bar-header">
       <view class="bar-info">
         <text class="name">{{ currentBar.name }}</text>
         <text class="switch" @tap="switchBar">切换</text>
@@ -12,11 +12,11 @@
         </view>
       </view>
     </view>
-    <view class="no-bar" v-else>
+    <view v-else class="no-bar">
       <text>请先选择酒吧</text>
       <button class="btn btn--primary" @tap="goToHome">去选择</button>
     </view>
-    <view class="content" v-if="currentBar">
+    <view v-if="currentBar" class="content">
       <scroll-view class="categories" scroll-y>
         <view v-for="cat in categories" :key="cat.id" class="category-item" :class="{ active: selectedCategory === cat.id }" @tap="selectCategory(cat.id)">
           {{ cat.name }}
@@ -26,10 +26,10 @@
         <view class="product-grid">
           <product-card v-for="product in productList" :key="product.id" :product="product" @add-to-cart="handleAddToCart" />
         </view>
-        <view class="loading" v-if="loading"><text>加载中...</text></view>
+        <view v-if="loading" class="loading"><text>加载中...</text></view>
       </scroll-view>
     </view>
-    <view class="cart-float" v-if="cartStore.totalQuantity > 0" @tap="goToCart">
+    <view v-if="cartStore.totalQuantity > 0" class="cart-float" @tap="goToCart">
       <view class="cart-icon"><text>🛒</text><text class="badge">{{ cartStore.totalQuantity }}</text></view>
       <view class="cart-info"><text class="amount">¥{{ cartStore.totalAmount }}</text></view>
       <button class="btn btn--primary">去结算</button>
@@ -116,7 +116,7 @@ const fetchCategories = async () => {
 }
 
 const handleAddToCart = async (product) => {
-  try { await cartStore.addItem(product, 1); uni.showToast({ title: '已加入购物车', icon: 'success' }) } catch (e) { uni.showToast({ title: '加入失败', icon: 'none' }) }
+  try { await cartStore.addItem(product, 1); uni.showToast({ title: '已加入购物车', icon: 'success' }) } catch { uni.showToast({ title: '加入失败', icon: 'none' }) }
 }
 
 const switchBar = () => { uni.switchTab({ url: '/pages/index/index' }) }

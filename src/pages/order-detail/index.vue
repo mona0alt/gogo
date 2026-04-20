@@ -9,33 +9,36 @@
       <text class="bar-address">{{ order?.barAddress }}</text>
     </view>
     <view class="section items-section">
-      <view class="item" v-for="item in order?.items" :key="item.id">
+      <view v-for="item in order?.items" :key="item.id" class="item">
         <image class="img" :src="item.productImage" mode="aspectFill" />
-        <view class="info"><text class="name">{{ item.productName }}</text><text class="specs" v-if="item.specs">{{ item.specs }}</text></view>
+        <view class="info"><text class="name">{{ item.productName }}</text><text v-if="item.specs" class="specs">{{ item.specs }}</text></view>
         <view class="right"><text class="price">¥{{ item.price }}</text><text class="qty">x{{ item.quantity }}</text></view>
       </view>
     </view>
     <view class="section info-section">
       <view class="row"><text class="label">订单编号</text><text class="value">{{ order?.orderNo }}</text></view>
       <view class="row"><text class="label">下单时间</text><text class="value">{{ formatDateTime(order?.createTime) }}</text></view>
-      <view class="row" v-if="order?.payTime"><text class="label">支付时间</text><text class="value">{{ formatDateTime(order?.payTime) }}</text></view>
+      <view v-if="order?.payTime" class="row"><text class="label">支付时间</text><text class="value">{{ formatDateTime(order?.payTime) }}</text></view>
     </view>
     <view class="section amount-section">
       <view class="row"><text class="label">商品金额</text><text class="value">¥{{ order?.totalAmount }}</text></view>
-      <view class="row" v-if="order?.discountAmount > 0"><text class="label">优惠金额</text><text class="value discount">-¥{{ order?.discountAmount }}</text></view>
+      <view v-if="order?.discountAmount > 0" class="row"><text class="label">优惠金额</text><text class="value discount">-¥{{ order?.discountAmount }}</text></view>
       <view class="row total"><text class="label">实付金额</text><text class="value">¥{{ order?.payAmount }}</text></view>
     </view>
-    <view class="bottom-bar" v-if="showActions">
-      <button class="btn btn--secondary" v-if="order?.status === 'pending_payment'" @tap="handleCancel">取消订单</button>
-      <button class="btn btn--primary" v-if="order?.status === 'pending_payment'" @tap="handlePay">去支付</button>
+    <view v-if="showActions" class="bottom-bar">
+      <button v-if="order?.status === 'pending_payment'" class="btn btn--secondary" @tap="handleCancel">取消订单</button>
+      <button v-if="order?.status === 'pending_payment'" class="btn btn--primary" @tap="handlePay">去支付</button>
     </view>
   </view>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
+import { useUserStore } from '@/stores/user'
 import { useOrderStore } from '@/stores/order'
 import { payOrder } from '@/api/order'
+
+const userStore = useUserStore()
 
 const orderStore = useOrderStore()
 const order = computed(() => orderStore.currentOrder)
@@ -73,6 +76,10 @@ const handlePay = async () => {
 }
 
 onMounted(async () => {
+  if (!userStore.isLoggedIn) {
+    uni.navigateTo({ url: '/pages/login/index' })
+    return
+  }
   const pages = getCurrentPages() || []
   const currentPage = pages[pages.length - 1]
   const id = currentPage?.options?.id

@@ -4,7 +4,7 @@
     <image class="image" :src="item.productImage || '/static/default-product.png'" mode="aspectFill" />
     <view class="info">
       <text class="name">{{ item.productName }}</text>
-      <text class="specs" v-if="item.specs">{{ item.specs }}</text>
+      <text v-if="item.specs" class="specs">{{ item.specs }}</text>
       <view class="bottom">
         <text class="price">¥{{ item.price }}</text>
         <view class="quantity">

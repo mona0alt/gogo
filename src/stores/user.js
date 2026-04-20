@@ -98,7 +98,6 @@ export const useUserStore = defineStore('user', {
       uni.removeStorageSync('token')
       uni.removeStorageSync('userId')
       uni.removeStorageSync('userInfo')
-      uni.reLaunch({ url: '/pages/index/index' })
     }
   }
 })

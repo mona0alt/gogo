@@ -1,6 +1,6 @@
 <template>
   <view class="index-page">
-    <scroll-view class="scroll-content" scroll-y @scrolltolower="onLoadMore" refresher-enabled :refresher-triggered="refreshing" @refresherrefresh="onRefresh">
+    <scroll-view class="scroll-content" scroll-y refresher-enabled :refresher-triggered="refreshing" @scrolltolower="onLoadMore" @refresherrefresh="onRefresh">
       <!-- Search Bar -->
       <view class="search-section">
         <view class="search-bar" @tap="goToSearch">
@@ -10,14 +10,14 @@
       </view>
 
       <!-- Hot Groups Carousel -->
-      <view class="hot-section" v-if="hotList.length > 0">
+      <view v-if="hotList.length > 0" class="hot-section">
         <view class="section-header">
           <text class="section-label">&#x1F525; 今日热门拼团</text>
           <text class="section-more" @tap="goToHall">更多 &#x203A;</text>
         </view>
         <scroll-view class="hot-scroll" scroll-x>
           <view class="hot-list">
-            <view class="hot-card" v-for="(item, index) in hotList" :key="index" @tap="onCardTap(item)">
+            <view v-for="(item, index) in hotList" :key="index" class="hot-card" @tap="onCardTap(item)">
               <view class="hot-card-bg">
                 <view class="hot-card-content">
                   <view class="hot-tag-wrap">
@@ -71,14 +71,14 @@
         </view>
 
         <view class="group-list">
-          <view class="group-card" v-for="(item, index) in groupList" :key="index" @tap="onCardTap(item)">
+          <view v-for="(item, index) in groupList" :key="index" class="group-card" @tap="onCardTap(item)">
             <view class="card-main">
               <view class="card-header-row">
                 <view class="card-user">
                   <image class="card-avatar" :src="item.creatorInfo?.avatar || '/static/default-avatar.png'" mode="aspectFill" @error="item.creatorInfo && (item.creatorInfo.avatar = '/static/default-avatar.png')" />
                   <view class="card-user-info">
                     <text class="card-nickname">{{ item.creatorInfo?.nickname || '匿名用户' }}</text>
-                    <text class="card-age" v-if="item.creatorInfo?.age">{{ item.creatorInfo.age }}岁</text>
+                    <text v-if="item.creatorInfo?.age" class="card-age">{{ item.creatorInfo.age }}岁</text>
                   </view>
                 </view>
                 <view class="card-time">
@@ -109,9 +109,9 @@
           </view>
         </view>
 
-        <view class="loading" v-if="loading"><text>加载中...</text></view>
-        <view class="no-more" v-if="noMore && groupList.length > 0"><text>没有更多了</text></view>
-        <view class="empty" v-if="!loading && groupList.length === 0">
+        <view v-if="loading" class="loading"><text>加载中...</text></view>
+        <view v-if="noMore && groupList.length > 0" class="no-more"><text>没有更多了</text></view>
+        <view v-if="!loading && groupList.length === 0" class="empty">
           <text class="empty-icon">&#x1F37A;</text>
           <text class="empty-title">暂无拼桌</text>
           <text class="empty-desc">成为第一个发起拼桌的人吧</text>
@@ -185,7 +185,7 @@ const fetchList = async () => {
     if (list.length < pageSize) {
       noMore.value = true
     }
-  } catch (e) {
+  } catch {
     uni.showToast({ title: '加载失败', icon: 'none' })
   } finally {
     loading.value = false

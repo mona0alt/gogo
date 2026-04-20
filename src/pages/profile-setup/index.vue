@@ -33,11 +33,11 @@
           <view class="form-row border-row">
             <text class="form-label">用户昵称</text>
             <input
+              v-model="form.nickname"
               class="form-input text-right"
               type="nickname"
               placeholder="请输入昵称"
               placeholder-class="placeholder"
-              v-model="form.nickname"
             />
           </view>
 
@@ -46,11 +46,11 @@
             <text class="form-label">年龄</text>
             <view class="form-input-wrap">
               <input
+                v-model="form.age"
                 class="form-input text-right narrow"
                 type="number"
                 placeholder="26"
                 placeholder-class="placeholder"
-                v-model="form.age"
               />
               <text class="form-unit">岁</text>
             </view>
@@ -90,21 +90,21 @@
           <view class="detail-card">
             <text class="detail-label">身高 (cm)</text>
             <input
+              v-model="form.height"
               class="detail-input"
               type="number"
               placeholder="175"
               placeholder-class="placeholder"
-              v-model="form.height"
             />
           </view>
           <view class="detail-card">
             <text class="detail-label">体重 (kg)</text>
             <input
+              v-model="form.weight"
               class="detail-input"
               type="number"
               placeholder="55"
               placeholder-class="placeholder"
-              v-model="form.weight"
             />
           </view>
           <view class="detail-card full-width">
@@ -123,11 +123,11 @@
           <text class="detail-label">文字介绍</text>
           <view class="bio-box">
             <textarea
+              v-model="form.bio"
               class="bio-textarea"
               placeholder="请介绍您的个人性格等信息说明"
               placeholder-class="placeholder"
               maxlength="200"
-              v-model="form.bio"
             />
           </view>
         </view>
@@ -136,14 +136,14 @@
         <view class="photo-wrap">
           <text class="detail-label">日常生活照片（可上传多张）</text>
           <view class="photo-grid">
-            <view class="photo-upload" @tap="onUploadPhoto" v-if="form.photos.length < 6">
+            <view v-if="form.photos.length < 6" class="photo-upload" @tap="onUploadPhoto">
               <text class="icon-add">+</text>
               <text class="upload-text">UPLOAD</text>
             </view>
             <view
-              class="photo-item"
               v-for="(photo, index) in form.photos"
               :key="index"
+              class="photo-item"
             >
               <image class="photo-img" :src="photo" mode="aspectFill" />
               <view class="photo-delete" @tap="onDeletePhoto(index)">
@@ -174,10 +174,17 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
 import { useUserStore } from '@/stores/user'
 import { callCloudFunction } from '@/utils/request'
 
 const userStore = useUserStore()
+
+onShow(() => {
+  if (!userStore.isLoggedIn) {
+    uni.navigateTo({ url: '/pages/login/index' })
+  }
+})
 
 const zodiacList = [
   '白羊座', '金牛座', '双子座', '巨蟹座', '狮子座', '处女座',
@@ -247,30 +254,38 @@ const onSubmit = async () => {
     // Upload avatar if it's a local temp file
     let avatarFileID = form.value.avatar
     if (form.value.avatar && (form.value.avatar.startsWith('wxfile://') || form.value.avatar.startsWith('http://tmp/'))) {
-      const uploadRes = await new Promise((resolve, reject) => {
-        wx.cloud.uploadFile({
-          cloudPath: `user-avatars/${Date.now()}.jpg`,
-          filePath: form.value.avatar,
-          success: resolve,
-          fail: reject
+      try {
+        const uploadRes = await new Promise((resolve, reject) => {
+          wx.cloud.uploadFile({
+            cloudPath: `user-avatars/${Date.now()}.jpg`,
+            filePath: form.value.avatar,
+            success: resolve,
+            fail: reject
+          })
         })
-      })
-      avatarFileID = uploadRes.fileID
+        avatarFileID = uploadRes.fileID
+      } catch (uploadErr) {
+        console.warn('Avatar upload failed:', uploadErr)
+      }
     }
 
     // Upload photos
     const photoFileIDs = []
     for (const photo of form.value.photos) {
       if (photo.startsWith('wxfile://') || photo.startsWith('http://tmp/')) {
-        const uploadRes = await new Promise((resolve, reject) => {
-          wx.cloud.uploadFile({
-            cloudPath: `user-photos/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`,
-            filePath: photo,
-            success: resolve,
-            fail: reject
+        try {
+          const uploadRes = await new Promise((resolve, reject) => {
+            wx.cloud.uploadFile({
+              cloudPath: `user-photos/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`,
+              filePath: photo,
+              success: resolve,
+              fail: reject
+            })
           })
-        })
-        photoFileIDs.push(uploadRes.fileID)
+          photoFileIDs.push(uploadRes.fileID)
+        } catch (uploadErr) {
+          console.warn('Photo upload failed:', uploadErr)
+        }
       } else {
         photoFileIDs.push(photo)
       }

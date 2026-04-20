@@ -16,7 +16,7 @@
         <image class="avatar" :src="userAvatar" mode="aspectFill" @error="userAvatar = '/static/default-avatar.png'" />
         <view class="user-info">
           <text class="nickname">{{ userNickname }}</text>
-          <view class="member-badge" v-if="currentLevel">
+          <view v-if="currentLevel" class="member-badge">
             <text class="badge-text">{{ currentLevel === 'svip' ? 'SVIP' : 'VIP' }}</text>
           </view>
         </view>
@@ -129,7 +129,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 
 const userAvatar = ref('/static/default-avatar.png')
@@ -139,6 +139,10 @@ const selectedPlan = ref('svip')
 const submitting = ref(false)
 
 onShow(() => {
+  if (!userStore.isLoggedIn) {
+    uni.navigateTo({ url: '/pages/login/index' })
+    return
+  }
   const storedUserInfo = uni.getStorageSync('userInfo')
   if (storedUserInfo) {
     userAvatar.value = storedUserInfo.avatar || '/static/default-avatar.png'
@@ -175,7 +179,7 @@ const handleSubscribe = async () => {
   })
 }
 
-const processPayment = async (plan) => {
+const processPayment = async () => {
   submitting.value = true
   try {
     // TODO: 接入实际的会员购买云函数

@@ -4,12 +4,12 @@
       <input v-model="keyword" class="search-input" placeholder="搜索商品名称" @confirm="search" />
       <text class="cancel" @tap="goBack">取消</text>
     </view>
-    <scroll-view class="results" scroll-y v-if="products.length > 0">
+    <scroll-view v-if="products.length > 0" class="results" scroll-y>
       <view class="product-list">
         <product-card v-for="product in products" :key="product.id" :product="product" @add-to-cart="handleAddToCart" />
       </view>
     </scroll-view>
-    <view class="empty" v-else-if="searched">
+    <view v-else-if="searched" class="empty">
       <text>未找到相关商品</text>
     </view>
   </view>
@@ -32,7 +32,7 @@ const search = async () => {
   try {
     const data = await getProductList('all', { keyword: keyword.value })
     products.value = data?.list || []
-  } catch (e) {
+  } catch {
     uni.showToast({ title: '搜索失败', icon: 'none' })
   }
 }
@@ -41,7 +41,7 @@ const handleAddToCart = async (product) => {
   try {
     await cartStore.addItem(product, 1)
     uni.showToast({ title: '已加入购物车', icon: 'success' })
-  } catch (e) {
+  } catch {
     uni.showToast({ title: '加入失败', icon: 'none' })
   }
 }

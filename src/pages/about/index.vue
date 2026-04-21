@@ -1,7 +1,7 @@
 <template>
   <view class="page">
     <view class="header">
-      <image class="logo" src="/static/logo.png" mode="aspectFit" />
+      <image class="logo" src="/static/default-avatar.png" mode="aspectFit" />
       <text class="app-name">酒吧聚合平台</text>
       <text class="version">版本 {{ version }}</text>
     </view>

@@ -151,6 +151,7 @@ import { onShow, onHide, onReady } from '@dcloudio/uni-app'
 import { useUserStore } from '@/stores/user'
 import { useTabBarShowRefresh } from '@/composables/useTabBarShowRefresh'
 import { callCloudFunction } from '@/utils/request'
+import { ROUTES } from '@/constants/routes'
 
 const userStore = useUserStore()
 const stats = { orderCount: 0, wineCount: 0 }
@@ -274,10 +275,10 @@ const goToOrders = (_status?: string) => { uni.navigateTo({ url: '/pages/orders/
 const goToInvites = () => { uni.navigateTo({ url: '/pages/match-invites/index' }) }
 const goToMember = () => { uni.navigateTo({ url: '/pages/member/index' }) }
 const goToWineStorage = () => { uni.navigateTo({ url: '/pages/wine-storage/index' }) }
-const goToCoupons = () => { uni.navigateTo({ url: '/pages/coupons/index' }) }
-const goToAddress = () => { uni.navigateTo({ url: '/pages/address/index' }) }
-const goToHelp = () => { uni.navigateTo({ url: '/pages/help/index' }) }
-const goToAbout = () => { uni.navigateTo({ url: '/pages/about/index' }) }
+const goToCoupons = () => { uni.navigateTo({ url: ROUTES.COUPONS }) }
+const goToAddress = () => { uni.navigateTo({ url: ROUTES.ADDRESS }) }
+const goToHelp = () => { uni.navigateTo({ url: ROUTES.HELP }) }
+const goToAbout = () => { uni.navigateTo({ url: ROUTES.ABOUT }) }
 const handleLogout = async () => {
   // eslint-disable-next-line no-console
   console.log('[mine] handleLogout called')

@@ -8,6 +8,8 @@ import type {
   MatchRequest,
   CreatorInfo,
   Group,
+  UserCoupon,
+  DeliveryAddress,
 } from './domain'
 
 export interface CloudResult<T = unknown> {
@@ -44,3 +46,9 @@ export type MatchInviteResult = {
   >
   total: number
 }
+
+export type CouponListResult = { success: boolean; list: UserCoupon[]; total: number }
+export type ReceiveCouponResult = { success: boolean; userCouponId: string }
+export type ValidateCouponResult = { success: boolean; valid: boolean }
+export type AddressListResult = { success: boolean; list: DeliveryAddress[]; total: number }
+export type SaveAddressResult = { success: boolean; addressId: string }

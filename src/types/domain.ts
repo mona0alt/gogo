@@ -141,3 +141,45 @@ export interface FollowRecord {
   followingOpenid: string
   createdAt: Date
 }
+
+export type CouponType = 'fixed' | 'threshold' | 'discount'
+export type CouponScopeType = 'all' | 'bar' | 'category'
+export type UserCouponStatus = 'unused' | 'used' | 'expired'
+
+export interface Coupon {
+  id: string
+  name: string
+  type: CouponType
+  value: number
+  threshold: number
+  scopeType: CouponScopeType
+  scopeTarget?: string
+  validDays: number
+  status: 'active' | 'inactive'
+}
+
+export interface UserCoupon {
+  id: string
+  couponId: string
+  name: string
+  type: CouponType
+  value: number
+  threshold: number
+  scopeType: CouponScopeType
+  scopeTarget?: string
+  status: UserCouponStatus
+  expireAt: string
+  usedAt?: string
+  orderId?: string
+}
+
+export interface DeliveryAddress {
+  id: string
+  name: string
+  phone: string
+  province: string
+  city: string
+  district: string
+  detail: string
+  isDefault: boolean
+}

@@ -68,6 +68,27 @@
         { "name": "follower_following", "fields": ["followerOpenid", "followingOpenid"], "unique": true },
         { "name": "follower_createdAt", "fields": ["followerOpenid", "createdAt"] }
       ]
+    },
+    {
+      "name": "coupons",
+      "indexes": [
+        { "name": "status", "fields": ["status"] }
+      ]
+    },
+    {
+      "name": "user_coupons",
+      "indexes": [
+        { "name": "openid_status", "fields": ["openid", "status"] },
+        { "name": "openid_expireAt", "fields": ["openid", "expireAt"] },
+        { "name": "couponId", "fields": ["couponId"] }
+      ]
+    },
+    {
+      "name": "delivery_address",
+      "indexes": [
+        { "name": "openid", "fields": ["openid"] },
+        { "name": "openid_isDefault", "fields": ["openid", "isDefault"] }
+      ]
     }
   ],
   "sampleData": {

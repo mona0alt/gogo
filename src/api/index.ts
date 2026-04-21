@@ -6,6 +6,11 @@ import type {
   OrderListResult,
   GroupListResult,
   MatchInviteResult,
+  CouponListResult,
+  ReceiveCouponResult,
+  ValidateCouponResult,
+  AddressListResult,
+  SaveAddressResult,
 } from '@/types/api'
 import type {
   User,
@@ -13,6 +18,7 @@ import type {
   Product,
   Order,
   GroupWithCreator,
+  UserCouponStatus,
 } from '@/types/domain'
 
 async function callFn<T>(
@@ -208,6 +214,30 @@ export const followApi = {
       list: Array<{ openid: string; nickname: string; avatar: string }>
       total: number
     }>('getFollowList', params),
+}
+
+// Coupon API
+export const couponApi = {
+  getList: (params?: { status?: UserCouponStatus; page?: number; pageSize?: number }) =>
+    callFn<CouponListResult>('getCoupons', params as Record<string, unknown>),
+
+  receive: (couponId: string) =>
+    callFn<ReceiveCouponResult>('receiveCoupon', { couponId }),
+
+  validate: (data: { userCouponId: string; orderAmount: number; barId?: string }) =>
+    callFn<ValidateCouponResult>('validateCoupon', data),
+}
+
+// Address API
+export const addressApi = {
+  getList: (params?: { page?: number; pageSize?: number }) =>
+    callFn<AddressListResult>('getAddresses', params as Record<string, unknown>),
+
+  save: (data: Partial<DeliveryAddress> & { id?: string }) =>
+    callFn<SaveAddressResult>('saveAddress', data as Record<string, unknown>),
+
+  remove: (id: string) =>
+    callFn<void>('deleteAddress', { id }),
 }
 
 // Re-export individual APIs for backward compatibility

@@ -39,4 +39,12 @@ export const ROUTES = {
 
   // 会员
   MEMBER: '/pages/member/index',
+
+  // 我的页面附属功能
+  COUPONS: '/pages/coupons/index',
+  ADDRESS: '/pages/address/index',
+  ADDRESS_EDIT: (id?: string) =>
+    `/pages/address-edit/index${id ? `?id=${id}` : ''}`,
+  HELP: '/pages/help/index',
+  ABOUT: '/pages/about/index',
 } as const

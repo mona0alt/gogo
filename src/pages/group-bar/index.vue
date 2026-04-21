@@ -1,4 +1,5 @@
 <template>
+  <app-modal />
   <view class="bar-page">
     <!-- Top Navigation -->
     <view class="top-nav">
@@ -112,11 +113,13 @@
 </template>
 
 <script setup lang="ts">
+import AppModal from '@/components/app-modal/index.vue'
 import { showToast, showModal, showLoading, hideLoading } from '@/utils/feedback'
 import { ref, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { useBarStore } from '@/stores/bar'
 import { callCloudFunction } from '@/utils/request'
+import { ROUTES } from '@/constants/routes'
 
 const userStore = useUserStore()
 const barStore = useBarStore()
@@ -183,8 +186,11 @@ const onNext = async () => {
   // eslint-disable-next-line no-console
   console.log('[createGroup] start', { barId: selectedBar.value.id || selectedBar.value._id, barName: selectedBar.value.name, packageType: selectedPackage.value, date: d, startTime: st, endTime: et })
 
+  const title = `${selectedBar.value.name} · ${selectedPackage.value === '198' ? '198畅饮套餐' : selectedPackage.value === '40' ? '基础台费' : selectedPackage.value}`
+
   try {
     const res = await callCloudFunction('createGroup', {
+      title,
       targetGender: tg,
       barId: selectedBar.value.id || selectedBar.value._id,
       barName: selectedBar.value.name,
@@ -220,7 +226,16 @@ const onNext = async () => {
     console.error('createGroup error:', e)
     const msg = e.message || '创建失败，请检查网络'
     if (msg.includes('进行中的拼团')) {
-      await showModal({ title: '提示', content: msg, showCancel: false, confirmText: '我知道了' })
+      const { confirm } = await showModal({
+        title: '已有进行中的拼团',
+        content: msg,
+        showCancel: true,
+        cancelText: '取消',
+        confirmText: '去查看',
+      })
+      if (confirm) {
+        uni.navigateTo({ url: ROUTES.GROUP_STATUS })
+      }
     } else {
       showToast({ title: msg, icon: 'none', duration: 3000 })
     }

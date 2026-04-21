@@ -1,15 +1,15 @@
 <template>
   <view class="hall-page">
     <!-- Top Navigation -->
-    <view class="top-nav">
+    <view class="top-nav" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-left">
-        <image class="nav-avatar" :src="userStore.userInfo?.avatar || '/static/default-avatar.png'" mode="aspectFill" @error="navAvatarError" />
+        <image class="nav-avatar" :src="navAvatar" mode="aspectFill" @error="navAvatarError" />
         <text class="nav-title">拼桌大厅</text>
       </view>
       <text class="nav-settings" @tap="onSettings">⚙</text>
     </view>
 
-    <scroll-view class="scroll-content" scroll-y @scrolltolower="onLoadMore">
+    <scroll-view class="scroll-content" scroll-y :style="{ paddingTop: navHeightRpx + 'rpx' }" @scrolltolower="onLoadMore">
       <!-- Filters -->
       <view class="filters-section">
         <view class="filter-grid">
@@ -135,18 +135,61 @@
       <text class="fab-icon">+</text>
       <text class="fab-text">立即发布</text>
     </view>
+
+    <!-- Bottom Sheet -->
+    <view v-if="sheetVisible" class="sheet-mask" @tap="onSheetMaskTap">
+      <view class="sheet-container" @tap.stop>
+        <view class="sheet-header">
+          <text class="sheet-title">{{ sheetTitle }}</text>
+          <view class="sheet-close" @tap="closeSheet">✕</view>
+        </view>
+        <view class="sheet-body">
+          <view
+            v-for="(opt, idx) in sheetOptions"
+            :key="idx"
+            class="sheet-item"
+            :class="{ active: idx === activeSheetIndex }"
+            @tap="onSheetSelect(idx)"
+          >
+            <text class="sheet-item-text">{{ opt }}</text>
+            <text v-if="idx === activeSheetIndex" class="sheet-item-check">✓</text>
+          </view>
+        </view>
+        <view class="sheet-footer">
+          <view class="sheet-cancel" @tap="closeSheet">取消</view>
+        </view>
+      </view>
+    </view>
   </view>
 </template>
 
 <script setup lang="ts">
 import { showToast } from '@/utils/feedback'
 import { ref, onMounted } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
 import { useUserStore } from '@/stores/user'
-import { callCloudFunction } from '@/utils/request'
 import { groupApi, barApi } from '@/api/index'
 import type { GroupWithCreator } from '@/types/domain'
+import { resolveCloudAvatar } from '@/utils/cloud'
 
 const userStore = useUserStore()
+
+const statusBarHeight = ref(0)
+const windowWidth = ref(375)
+const navHeightRpx = ref(88)
+const initSystemInfo = () => {
+  try {
+    const info = uni.getSystemInfoSync()
+    statusBarHeight.value = info.statusBarHeight || 0
+    windowWidth.value = info.windowWidth || 375
+    const sbRpx = statusBarHeight.value * (750 / windowWidth.value)
+    navHeightRpx.value = Math.round(88 + sbRpx)
+  } catch {
+    statusBarHeight.value = 0
+    windowWidth.value = 375
+    navHeightRpx.value = 88
+  }
+}
 
 interface DisplayGroup {
   _id: string
@@ -164,6 +207,7 @@ const page = ref(1)
 const pageSize = 20
 
 const barList = ref<{ id: string; name: string }[]>([])
+const navAvatar = ref('/static/default-avatar.png')
 
 const filters = ref({
   barId: '',
@@ -221,6 +265,11 @@ const fetchGroupList = async (reset = false) => {
 
     const res = await groupApi.getList(params)
     const list = (res.list || []).map(formatGroup)
+    await Promise.all(list.map(async (item: DisplayGroup) => {
+      if (item.avatars[0] && item.avatars[0] !== '/static/default-avatar.png') {
+        item.avatars[0] = await resolveCloudAvatar(item.avatars[0])
+      }
+    }))
     if (page.value === 1) {
       groupList.value = list
     } else {
@@ -234,6 +283,39 @@ const fetchGroupList = async (reset = false) => {
   } finally {
     loading.value = false
   }
+}
+
+const sheetVisible = ref(false)
+const sheetTitle = ref('')
+const sheetOptions = ref<string[]>([])
+const activeSheetIndex = ref(-1)
+// eslint-disable-next-line no-unused-vars
+let sheetCallback: ((index: number) => void) | null = null
+
+// eslint-disable-next-line no-unused-vars
+const openSheet = (title: string, options: string[], activeIndex: number, callback: (index: number) => void) => {
+  sheetTitle.value = title
+  sheetOptions.value = options
+  activeSheetIndex.value = activeIndex
+  sheetCallback = callback
+  sheetVisible.value = true
+}
+
+const closeSheet = () => {
+  sheetVisible.value = false
+  sheetCallback = null
+}
+
+const onSheetMaskTap = () => {
+  closeSheet()
+}
+
+const onSheetSelect = (idx: number) => {
+  activeSheetIndex.value = idx
+  if (sheetCallback) {
+    sheetCallback(idx)
+  }
+  closeSheet()
 }
 
 const featuredItem = ref<DisplayGroup>({
@@ -263,54 +345,51 @@ const onSettings = () => {
 
 const onFilterBar = () => {
   const bars = ['全部', ...barList.value.map((b) => b.name)]
-  uni.showActionSheet({
-    itemList: bars,
-    success: (res) => {
-      const idx = res.tapIndex
-      if (idx === 0) {
-        filters.value.barId = ''
-        filters.value.barName = '选择酒吧'
-      } else {
-        const bar = barList.value[idx - 1]
-        filters.value.barId = bar.id
-        filters.value.barName = bar.name
-      }
-      fetchGroupList(true)
+  let activeIdx = 0
+  if (filters.value.barId) {
+    const barIdx = barList.value.findIndex((b) => b.id === filters.value.barId)
+    if (barIdx >= 0) activeIdx = barIdx + 1
+  }
+  openSheet('选择酒吧', bars, activeIdx, (idx) => {
+    if (idx === 0) {
+      filters.value.barId = ''
+      filters.value.barName = '选择酒吧'
+    } else {
+      const bar = barList.value[idx - 1]
+      filters.value.barId = bar.id
+      filters.value.barName = bar.name
     }
+    fetchGroupList(true)
   })
 }
 
 const onFilterPackage = () => {
-  uni.showActionSheet({
-    itemList: packageOptions,
-    success: (res) => {
-      const val = packageOptions[res.tapIndex]
-      if (val === '全部') {
-        filters.value.packageType = ''
-        filters.value.packageTypeName = '套餐类型'
-      } else {
-        filters.value.packageType = val
-        filters.value.packageTypeName = val
-      }
-      fetchGroupList(true)
+  const activeIdx = Math.max(0, packageOptions.findIndex((o) => o === filters.value.packageTypeName))
+  openSheet('套餐类型', packageOptions, activeIdx, (idx) => {
+    const val = packageOptions[idx]
+    if (val === '全部') {
+      filters.value.packageType = ''
+      filters.value.packageTypeName = '套餐类型'
+    } else {
+      filters.value.packageType = val
+      filters.value.packageTypeName = val
     }
+    fetchGroupList(true)
   })
 }
 
 const onFilterPeople = () => {
-  uni.showActionSheet({
-    itemList: peopleOptions,
-    success: (res) => {
-      const val = peopleOptions[res.tapIndex]
-      if (val === '全部') {
-        filters.value.people = ''
-        filters.value.peopleName = '人数限制'
-      } else {
-        filters.value.people = val
-        filters.value.peopleName = val
-      }
-      fetchGroupList(true)
+  const activeIdx = Math.max(0, peopleOptions.findIndex((o) => o === filters.value.peopleName))
+  openSheet('人数限制', peopleOptions, activeIdx, (idx) => {
+    const val = peopleOptions[idx]
+    if (val === '全部') {
+      filters.value.people = ''
+      filters.value.peopleName = '人数限制'
+    } else {
+      filters.value.people = val
+      filters.value.peopleName = val
     }
+    fetchGroupList(true)
   })
 }
 
@@ -323,24 +402,30 @@ const onFilterTime = () => {
     return `${y}-${m}-${day}`
   }
   const dates = ['', format(today), format(new Date(today.getTime() + 86400000)), format(new Date(today.getTime() + 172800000))]
-  uni.showActionSheet({
-    itemList: dateOptions,
-    success: (res) => {
-      const idx = res.tapIndex
-      if (idx === 0) {
-        filters.value.date = ''
-        filters.value.dateName = '预定时间'
-      } else {
-        filters.value.date = dates[idx]
-        filters.value.dateName = dateOptions[idx]
-      }
-      fetchGroupList(true)
+  let activeIdx = 0
+  if (filters.value.date) {
+    const dIdx = dates.findIndex((d) => d === filters.value.date)
+    if (dIdx >= 0) activeIdx = dIdx
+  }
+  openSheet('预定时间', dateOptions, activeIdx, (idx) => {
+    if (idx === 0) {
+      filters.value.date = ''
+      filters.value.dateName = '预定时间'
+    } else {
+      filters.value.date = dates[idx]
+      filters.value.dateName = dateOptions[idx]
     }
+    fetchGroupList(true)
   })
 }
 
 const navAvatarError = () => {
-  if (userStore.userInfo) userStore.userInfo.avatar = '/static/default-avatar.png'
+  navAvatar.value = '/static/default-avatar.png'
+}
+
+const refreshNavAvatar = async () => {
+  const url = userStore.userInfo?.avatar
+  navAvatar.value = url ? await resolveCloudAvatar(url) : '/static/default-avatar.png'
 }
 
 const onLoadMore = () => {
@@ -349,7 +434,12 @@ const onLoadMore = () => {
   fetchGroupList()
 }
 
+onShow(() => {
+  refreshNavAvatar()
+})
+
 onMounted(() => {
+  initSystemInfo()
   fetchBarList()
   fetchGroupList(true)
 })
@@ -407,7 +497,6 @@ onMounted(() => {
 /* Scroll Content */
 .scroll-content {
   flex: 1;
-  padding-top: 88rpx;
 }
 
 /* Filters */
@@ -810,5 +899,121 @@ onMounted(() => {
   font-size: 26rpx;
   font-weight: bold;
   letter-spacing: 4rpx;
+}
+
+/* Bottom Sheet */
+.sheet-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 999;
+  background-color: rgba(0, 0, 0, 0.7);
+  animation: fadeIn 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.sheet-container {
+  background: $bg-secondary;
+  border-radius: $border-radius-xl $border-radius-xl 0 0;
+  padding: $spacing-lg $spacing-lg calc($spacing-lg + env(safe-area-inset-bottom));
+  animation: slideUp 0.25s ease;
+}
+
+.sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.sheet-title {
+  font-size: $font-lg;
+  font-weight: bold;
+  color: $text-primary;
+}
+
+.sheet-close {
+  width: 40rpx;
+  height: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-lg;
+  color: $text-secondary;
+}
+
+.sheet-body {
+  display: flex;
+  flex-direction: column;
+  max-height: 600rpx;
+  overflow-y: auto;
+}
+
+.sheet-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-md;
+  border-radius: $border-radius-md;
+  transition: background $transition-fast;
+
+  &.active {
+    background: rgba($primary, 0.1);
+  }
+
+  &:active {
+    background: $bg-hover;
+  }
+}
+
+.sheet-item-text {
+  font-size: $font-md;
+  color: $text-secondary;
+
+  .active & {
+    color: $primary;
+    font-weight: bold;
+  }
+}
+
+.sheet-item-check {
+  font-size: $font-md;
+  color: $primary;
+}
+
+.sheet-footer {
+  margin-top: $spacing-md;
+  padding-top: $spacing-md;
+  border-top: 1rpx solid $border-color;
+}
+
+.sheet-cancel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 88rpx;
+  border-radius: $border-radius-full;
+  background: $bg-card;
+  color: $text-secondary;
+  font-size: $font-md;
+  font-weight: 600;
+
+  &:active {
+    background: $bg-hover;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
 }
 </style>

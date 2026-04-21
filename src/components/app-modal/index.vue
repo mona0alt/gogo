@@ -3,39 +3,33 @@ import { useFeedbackStore } from '@/stores/feedback'
 
 const store = useFeedbackStore()
 
-const onMaskClick = () => {
-  // eslint-disable-next-line no-console
-  console.log('[app-modal] mask clicked')
+const onMaskTap = () => {
   store.closeModal(false)
 }
 
 const onCancel = () => {
-  // eslint-disable-next-line no-console
-  console.log('[app-modal] cancel clicked')
   store.closeModal(false)
 }
 
 const onConfirm = () => {
-  // eslint-disable-next-line no-console
-  console.log('[app-modal] confirm clicked')
   store.closeModal(true)
 }
 </script>
 
 <template>
-  <view v-if="store.modal.visible" class="modal" @click="onMaskClick">
-    <view class="modal__card" @click.stop>
+  <view v-show="store.modal.visible" class="modal" @tap="onMaskTap">
+    <view class="modal__card" @tap.stop>
       <view v-if="store.modal.title" class="modal__title">{{ store.modal.title }}</view>
       <view v-if="store.modal.content" class="modal__content">{{ store.modal.content }}</view>
       <view class="modal__actions">
         <view
           v-if="store.modal.showCancel"
           class="modal__btn modal__btn--cancel"
-          @click="onCancel"
+          @tap="onCancel"
         >
           {{ store.modal.cancelText }}
         </view>
-        <view class="modal__btn modal__btn--confirm" @click="onConfirm">
+        <view class="modal__btn modal__btn--confirm" @tap="onConfirm">
           {{ store.modal.confirmText }}
         </view>
       </view>
@@ -45,6 +39,7 @@ const onConfirm = () => {
 
 <style lang="scss" scoped>
 .modal {
+  &[hidden] { display: none !important; }
   position: fixed;
   top: 0;
   left: 0;

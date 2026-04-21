@@ -96,12 +96,16 @@ onLoad(() => {
       console.warn('[login] silent login timeout')
     }, 10000)
     userStore.login()
-      .then(() => uni.switchTab({ url: '/pages/index/index' }))
+      .then(() => {
+        hideLoading()
+        clearTimeout(timeout)
+        uni.switchTab({ url: '/pages/index/index' })
+      })
       .catch((err: any) => {
         console.error('Silent login failed:', err)
         hideLoading()
+        clearTimeout(timeout)
       })
-      .finally(() => clearTimeout(timeout))
   }
 })
 
@@ -238,7 +242,10 @@ const onConfirmLogin = async () => {
     // eslint-disable-next-line no-console
     console.log('[login] cloud function success', loginData)
 
-    // 4. 判断是否已完善资料
+    // 4. 先关闭 loading，再跳转页面，避免页面切换时全局组件状态冲突
+    hideLoading()
+
+    // 5. 判断是否已完善资料
     if (loginData.userInfo && !loginData.userInfo.profileCompleted) {
       uni.navigateTo({ url: '/pages/profile-setup/index' })
     } else {
@@ -247,9 +254,8 @@ const onConfirmLogin = async () => {
   } catch (err: any) {
     // eslint-disable-next-line no-console
     console.error('[login] Login failed:', err)
-    showToast({ title: err.message || '登录失败，请重试', icon: 'none', duration: 3000 })
-  } finally {
     hideLoading()
+    showToast({ title: err.message || '登录失败，请重试', icon: 'none', duration: 3000 })
   }
 }
 

@@ -117,6 +117,7 @@ import { showToast, showLoading, hideLoading } from '@/utils/feedback'
 import { ref, computed, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { callCloudFunction } from '@/utils/request'
+import { resolveCloudAvatar } from '@/utils/cloud'
 
 const userStore = useUserStore()
 
@@ -188,7 +189,18 @@ const fetchRecommendUsers = async () => {
       callCloudFunction('getRecommendUsers', { groupId: gid, limit: 20 }),
       fetchFollowList()
     ])
-    userList.value = res.list || []
+    const list = res.list || []
+    await Promise.all(list.map(async (user: any) => {
+      if (user.avatar) {
+        user.avatar = await resolveCloudAvatar(user.avatar)
+      }
+      if (user.photos?.length) {
+        await Promise.all(user.photos.map(async (photo: string, i: number) => {
+          user.photos[i] = await resolveCloudAvatar(photo)
+        }))
+      }
+    }))
+    userList.value = list
     if (userList.value.length === 0) {
       showToast({ title: '暂无推荐用户', icon: 'none' })
     }

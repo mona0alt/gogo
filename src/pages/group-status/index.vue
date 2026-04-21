@@ -7,7 +7,7 @@
       </view>
       <text class="nav-title">客服消息</text>
       <view class="nav-right">
-        <image class="nav-avatar" :src="userStore.userInfo?.avatar || '/static/default-avatar.png'" mode="aspectFill" @error="navAvatarError" />
+        <image class="nav-avatar" :src="navAvatar" mode="aspectFill" @error="navAvatarError" />
       </view>
     </view>
 
@@ -107,8 +107,10 @@
 <script setup lang="ts">
 import { showToast } from '@/utils/feedback'
 import { ref, onMounted } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
 import { useUserStore } from '@/stores/user'
 import { callCloudFunction } from '@/utils/request'
+import { resolveCloudAvatar } from '@/utils/cloud'
 
 const userStore = useUserStore()
 
@@ -120,10 +122,20 @@ const groupStatus = ref('')
 const tableNumber = ref('')
 const loading = ref(false)
 const scrollToId = ref('bottom')
+const navAvatar = ref('/static/default-avatar.png')
 
 const navAvatarError = () => {
-  if (userStore.userInfo) userStore.userInfo.avatar = '/static/default-avatar.png'
+  navAvatar.value = '/static/default-avatar.png'
 }
+
+const refreshNavAvatar = async () => {
+  const url = userStore.userInfo?.avatar
+  navAvatar.value = url ? await resolveCloudAvatar(url) : '/static/default-avatar.png'
+}
+
+onShow(() => {
+  refreshNavAvatar()
+})
 
 const formatTime = (date: any) => {
   if (!date) return ''

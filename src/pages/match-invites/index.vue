@@ -71,6 +71,7 @@ import { showToast, showLoading, hideLoading } from '@/utils/feedback'
 import { ref, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { callCloudFunction } from '@/utils/request'
+import { resolveCloudAvatar } from '@/utils/cloud'
 
 const userStore = useUserStore()
 const inviteList = ref<any[]>([])
@@ -100,6 +101,11 @@ const fetchList = async () => {
       pageSize
     })
     const list = res.list || []
+    await Promise.all(list.map(async (item: any) => {
+      if (item.fromUser?.avatar) {
+        item.fromUser.avatar = await resolveCloudAvatar(item.fromUser.avatar)
+      }
+    }))
     if (page.value === 1) {
       inviteList.value = list
     } else {

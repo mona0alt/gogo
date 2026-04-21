@@ -1,4 +1,5 @@
 <template>
+  <app-modal />
   <view class="hall-create-page">
     <!-- Top Navigation -->
     <view class="top-nav">
@@ -26,11 +27,12 @@
         <view class="form-card">
           <text class="form-label">拼团标题</text>
           <input
-            v-model="form.title"
+            :value="form.title"
             class="form-input"
             type="text"
             placeholder="请输入"
             placeholder-class="placeholder"
+            @input="onTitleInput"
           />
         </view>
 
@@ -70,7 +72,7 @@
         </view>
 
         <!-- Group Size -->
-        <view class="form-card size-card">
+        <view class="form-card size-card selectable" @tap="onSelectSize">
           <text class="size-watermark">MEMBERS</text>
           <view class="size-content">
             <text class="form-label gold">拼团人数</text>
@@ -100,14 +102,41 @@
         <text v-if="!submitting" class="submit-icon">⚡</text>
       </view>
     </view>
+
+    <!-- Bottom Sheet -->
+    <view v-if="sheetVisible" class="sheet-mask" @tap="closeSheet">
+      <view class="sheet-container" @tap.stop>
+        <view class="sheet-header">
+          <text class="sheet-title">{{ sheetTitle }}</text>
+          <view class="sheet-close" @tap="closeSheet">✕</view>
+        </view>
+        <view class="sheet-body">
+          <view
+            v-for="(opt, idx) in sheetOptions"
+            :key="idx"
+            class="sheet-item"
+            :class="{ active: idx === activeSheetIndex }"
+            @tap="onSheetSelect(idx)"
+          >
+            <text class="sheet-item-text">{{ opt }}</text>
+            <text v-if="idx === activeSheetIndex" class="sheet-item-check">✓</text>
+          </view>
+        </view>
+        <view class="sheet-footer">
+          <view class="sheet-cancel" @tap="closeSheet">取消</view>
+        </view>
+      </view>
+    </view>
   </view>
 </template>
 
 <script setup lang="ts">
-import { showToast } from '@/utils/feedback'
+import AppModal from '@/components/app-modal/index.vue'
+import { showToast, showModal } from '@/utils/feedback'
 import { ref, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
-import { groupApi } from '@/api/index'
+import { groupApi, barApi } from '@/api/index'
+import { ROUTES } from '@/constants/routes'
 
 const userStore = useUserStore()
 const submitting = ref(false)
@@ -124,10 +153,61 @@ const form = ref({
   size: '3男3女'
 })
 
+const onTitleInput = (e: any) => {
+  form.value.title = e.detail?.value ?? ''
+}
+
+const barList = ref<{ id: string; name: string }[]>([])
+
+const fetchBarList = async () => {
+  try {
+    const res = await barApi.getList({ page: 1, pageSize: 100 })
+    barList.value = res.list.map((b) => ({ id: b.id, name: b.name }))
+  } catch {
+    // ignore
+  }
+}
+
+// Bottom Sheet
+const sheetVisible = ref(false)
+const sheetTitle = ref('')
+const sheetOptions = ref<string[]>([])
+const activeSheetIndex = ref(-1)
+// eslint-disable-next-line no-unused-vars
+let sheetCallback: ((_idx: number) => void) | null = null
+
+// eslint-disable-next-line no-unused-vars
+const openSheet = (title: string, options: string[], activeIdx: number, callback: (_idx: number) => void) => {
+  sheetTitle.value = title
+  sheetOptions.value = options
+  activeSheetIndex.value = activeIdx
+  sheetCallback = callback
+  sheetVisible.value = true
+}
+
+const closeSheet = () => {
+  sheetVisible.value = false
+  sheetCallback = null
+}
+
+const onSheetSelect = (idx: number) => {
+  activeSheetIndex.value = idx
+  if (sheetCallback) {
+    sheetCallback(idx)
+  }
+  closeSheet()
+}
+
+const packageOptions = ['畅饮套餐', '酒水套餐', '小吃套餐', 'VIP套餐']
+const groupTypeOptions = ['多人', '纯男', '纯女']
+const sizeOptions = ['2人', '3男3女', '4男4女', '5男5女', '8人+']
+
 onMounted(() => {
   if (!userStore.isLoggedIn) {
     uni.navigateTo({ url: '/pages/login/index' })
+    return
   }
+  fetchBarList()
 })
 
 const onBack = () => {
@@ -135,42 +215,116 @@ const onBack = () => {
 }
 
 const onSelectBar = () => {
-  showToast({ title: '选择酒吧', icon: 'none' })
+  const bars = barList.value.map((b) => b.name)
+  if (bars.length === 0) {
+    showToast({ title: '暂无酒吧数据', icon: 'none' })
+    return
+  }
+  let activeIdx = -1
+  if (form.value.barId) {
+    const idx = barList.value.findIndex((b) => b.id === form.value.barId)
+    if (idx >= 0) activeIdx = idx
+  }
+  openSheet('选择酒吧', bars, activeIdx, (idx) => {
+    const bar = barList.value[idx]
+    form.value.barId = bar.id
+    form.value.barName = bar.name
+  })
 }
+
 const onSelectPackage = () => {
-  showToast({ title: '选择套餐', icon: 'none' })
+  const activeIdx = Math.max(0, packageOptions.findIndex((o) => o === form.value.packageType))
+  openSheet('套餐类型', packageOptions, activeIdx, (idx) => {
+    form.value.packageType = packageOptions[idx]
+  })
 }
+
 const onSelectTime = () => {
-  showToast({ title: '选择时间', icon: 'none' })
+  const today = new Date()
+  const format = (d: Date) => {
+    const y = d.getFullYear()
+    const m = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    return `${y}-${m}-${day}`
+  }
+  const dates = [format(today), format(new Date(today.getTime() + 86400000)), format(new Date(today.getTime() + 172800000))]
+  const labels = dates.map((d) => {
+    const mm = d.slice(5, 7)
+    const dd = d.slice(8, 10)
+    return `${mm}月${dd}日`
+  })
+  let activeIdx = -1
+  if (form.value.date) {
+    const idx = dates.findIndex((d) => d === form.value.date)
+    if (idx >= 0) activeIdx = idx
+  }
+  openSheet('预约时间', labels, activeIdx, (idx) => {
+    form.value.date = dates[idx]
+  })
 }
+
 const onSelectType = () => {
-  showToast({ title: '选择类型', icon: 'none' })
+  const activeIdx = Math.max(0, groupTypeOptions.findIndex((o) => o === form.value.groupType))
+  openSheet('拼团类型', groupTypeOptions, activeIdx, (idx) => {
+    form.value.groupType = groupTypeOptions[idx]
+  })
+}
+
+const onSelectSize = () => {
+  const activeIdx = Math.max(0, sizeOptions.findIndex((o) => o === form.value.size))
+  openSheet('拼团人数', sizeOptions, activeIdx, (idx) => {
+    form.value.size = sizeOptions[idx]
+  })
 }
 
 const onSubmit = async () => {
-  if (!form.value.title.trim()) {
+  const title = form.value.title.trim()
+  if (!title) {
     showToast({ title: '请输入拼团标题', icon: 'none' })
+    return
+  }
+  if (!form.value.barId) {
+    showToast({ title: '请选择预约酒吧', icon: 'none' })
+    return
+  }
+  if (!form.value.date) {
+    showToast({ title: '请选择预约时间', icon: 'none' })
     return
   }
   if (submitting.value) return
   submitting.value = true
   try {
     await groupApi.create({
-      title: form.value.title,
-      barId: form.value.barId || 'default',
-      barName: form.value.barName || form.value.barId || '未知酒吧',
+      title,
+      barId: form.value.barId,
+      barName: form.value.barName,
       packageType: form.value.packageType,
-      date: form.value.date || new Date().toISOString().split('T')[0],
+      date: form.value.date,
       startTime: form.value.startTime || '20:00',
       endTime: form.value.endTime || '23:00',
       targetGender: 0,
+      people: form.value.size,
     })
     showToast({ title: '发布成功', icon: 'success' })
     setTimeout(() => {
       uni.navigateBack()
     }, 800)
-  } catch {
-    showToast({ title: '发布失败', icon: 'none' })
+  } catch (e: any) {
+    const msg = e.message || '发布失败'
+    if (msg.includes('进行中的拼团')) {
+      const { confirm } = await showModal({
+        title: '已有进行中的拼团',
+        content: msg,
+        showCancel: true,
+        cancelText: '取消',
+        confirmText: '去查看',
+      })
+      if (confirm) {
+        uni.navigateTo({ url: ROUTES.GROUP_STATUS })
+      }
+    } else {
+      showToast({ title: msg, icon: 'none' })
+    }
   } finally {
     submitting.value = false
   }
@@ -471,5 +625,121 @@ const onSubmit = async () => {
 
 .submit-icon {
   font-size: 32rpx;
+}
+
+/* Bottom Sheet */
+.sheet-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 999;
+  background-color: rgba(0, 0, 0, 0.7);
+  animation: fadeIn 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.sheet-container {
+  background: $bg-secondary;
+  border-radius: $border-radius-xl $border-radius-xl 0 0;
+  padding: $spacing-lg $spacing-lg calc($spacing-lg + env(safe-area-inset-bottom));
+  animation: slideUp 0.25s ease;
+}
+
+.sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.sheet-title {
+  font-size: $font-lg;
+  font-weight: bold;
+  color: $text-primary;
+}
+
+.sheet-close {
+  width: 40rpx;
+  height: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-lg;
+  color: $text-secondary;
+}
+
+.sheet-body {
+  display: flex;
+  flex-direction: column;
+  max-height: 600rpx;
+  overflow-y: auto;
+}
+
+.sheet-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-md;
+  border-radius: $border-radius-md;
+  transition: background $transition-fast;
+
+  &.active {
+    background: rgba($primary, 0.1);
+  }
+
+  &:active {
+    background: $bg-hover;
+  }
+}
+
+.sheet-item-text {
+  font-size: $font-md;
+  color: $text-secondary;
+
+  .active & {
+    color: $primary;
+    font-weight: bold;
+  }
+}
+
+.sheet-item-check {
+  font-size: $font-md;
+  color: $primary;
+}
+
+.sheet-footer {
+  margin-top: $spacing-md;
+  padding-top: $spacing-md;
+  border-top: 1rpx solid $border-color;
+}
+
+.sheet-cancel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 88rpx;
+  border-radius: $border-radius-full;
+  background: $bg-card;
+  color: $text-secondary;
+  font-size: $font-md;
+  font-weight: 600;
+
+  &:active {
+    background: $bg-hover;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
 }
 </style>

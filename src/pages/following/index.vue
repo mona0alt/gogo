@@ -48,6 +48,7 @@ import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { callCloudFunction } from '@/utils/request'
 import { useUserStore } from '@/stores/user'
+import { resolveCloudAvatar } from '@/utils/cloud'
 
 const userStore = useUserStore()
 
@@ -68,6 +69,11 @@ const fetchList = async () => {
       pageSize
     })
     const list = res.list || []
+    await Promise.all(list.map(async (item: any) => {
+      if (item.userInfo?.avatar) {
+        item.userInfo.avatar = await resolveCloudAvatar(item.userInfo.avatar)
+      }
+    }))
     if (page.value === 1) {
       followList.value = list
     } else {

@@ -148,7 +148,7 @@ export const orderApi = {
 // Group API
 export const groupApi = {
   create: (data: {
-    title?: string
+    title: string
     barId: string
     barName: string
     packageType: string

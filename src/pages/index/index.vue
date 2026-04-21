@@ -133,6 +133,7 @@
 import { showToast } from '@/utils/feedback'
 import { ref, onMounted } from 'vue'
 import { callCloudFunction } from '@/utils/request'
+import { resolveCloudAvatar } from '@/utils/cloud'
 
 const hotList = ref<any[]>([])
 const groupList = ref<any[]>([])
@@ -161,7 +162,13 @@ const fetchHotList = async () => {
       pageSize: 5,
       excludeOwn: true
     })
-    hotList.value = res.list || []
+    const list = res.list || []
+    await Promise.all(list.map(async (item: any) => {
+      if (item.creatorInfo?.avatar) {
+        item.creatorInfo.avatar = await resolveCloudAvatar(item.creatorInfo.avatar)
+      }
+    }))
+    hotList.value = list
   } catch (e: any) {
     console.error('Fetch hot list failed:', e)
   }
@@ -178,6 +185,11 @@ const fetchList = async () => {
       excludeOwn: true
     })
     const list = res.list || []
+    await Promise.all(list.map(async (item: any) => {
+      if (item.creatorInfo?.avatar) {
+        item.creatorInfo.avatar = await resolveCloudAvatar(item.creatorInfo.avatar)
+      }
+    }))
     if (page.value === 1) {
       groupList.value = list
     } else {

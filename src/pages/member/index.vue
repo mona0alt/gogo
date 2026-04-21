@@ -133,6 +133,7 @@ import { showModal, showToast } from '@/utils/feedback'
 import { ref } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { onShow } from '@dcloudio/uni-app'
+import { resolveCloudAvatar } from '@/utils/cloud'
 
 const userStore = useUserStore()
 const userAvatar = ref('/static/default-avatar.png')
@@ -141,14 +142,14 @@ const currentLevel = ref('')
 const selectedPlan = ref('svip')
 const submitting = ref(false)
 
-onShow(() => {
+onShow(async () => {
   if (!userStore.isLoggedIn) {
     uni.navigateTo({ url: '/pages/login/index' })
     return
   }
   const info = userStore.userInfo
   if (info) {
-    userAvatar.value = info.avatar || '/static/default-avatar.png'
+    userAvatar.value = (await resolveCloudAvatar(info.avatar)) || '/static/default-avatar.png'
     userNickname.value = info.nickname || '微信用户'
     currentLevel.value = info.memberLevel || ''
   }

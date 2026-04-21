@@ -151,6 +151,7 @@ import { onShow, onHide, onReady } from '@dcloudio/uni-app'
 import { useUserStore } from '@/stores/user'
 import { useTabBarShowRefresh } from '@/composables/useTabBarShowRefresh'
 import { callCloudFunction } from '@/utils/request'
+import { resolveCloudAvatar } from '@/utils/cloud'
 import { ROUTES } from '@/constants/routes'
 
 const userStore = useUserStore()
@@ -180,16 +181,6 @@ const onBannerChange = (e: any) => {
 const onBannerTap = (banner: any) => {
   if (banner.url) {
     uni.navigateTo({ url: banner.url })
-  }
-}
-
-const resolveCloudAvatar = async (url: string): Promise<string> => {
-  if (!url || !url.startsWith('cloud://')) return url
-  try {
-    const res = await (wx.cloud as any).getTempFileURL({ fileList: [url] })
-    return res.fileList?.[0]?.tempFileURL || url
-  } catch {
-    return url
   }
 }
 

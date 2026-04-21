@@ -1,22 +1,20 @@
 <template>
   <view class="login-page">
+    <image
+      class="login-bg"
+      :src="BG_IMAGE_URL"
+      mode="aspectFill"
+    />
     <view class="login-header">
       <image class="logo" src="/static/default-bar.png" mode="aspectFit" />
-      <text class="app-name">酒吧聚合平台</text>
-      <text class="welcome">{{ hasChosenAvatar ? '完善您的资料' : '欢迎使用酒吧聚合平台' }}</text>
     </view>
 
     <view class="login-body">
       <!-- 未选头像：展示大头像选择按钮 -->
       <view v-if="!hasChosenAvatar" class="profile-card">
-        <view class="card-header">
-          <view class="section-dot"></view>
-          <text class="section-title">选择头像</text>
-        </view>
-
         <button class="avatar-choose-btn" open-type="chooseAvatar" @chooseavatar="onChooseAvatar">
           <image class="avatar-preview" src="/static/default-avatar.png" mode="aspectFill" />
-          <view class="avatar-badge">
+          <view class="avatar-center-icon">
             <text class="icon-plus">+</text>
           </view>
         </button>
@@ -71,10 +69,16 @@
 
 <script setup lang="ts">
 import { showToast, showModal, showLoading, hideLoading } from '@/utils/feedback'
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, onMounted } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { useUserStore } from '@/stores/user'
 import { useAvatarUpload } from '@/composables/useAvatarUpload'
+
+const BG_IMAGE_URL = ref('')
+
+const loadBgImage = () => {
+  BG_IMAGE_URL.value = '/static/bar_match_logo.jpg'
+}
 
 const userStore = useUserStore()
 const { uploadAvatar } = useAvatarUpload()
@@ -83,6 +87,11 @@ const tempNickname = ref('')
 const tempAvatar = ref('')
 const nicknameFocus = ref(false)
 const showNicknameInput = ref(true)
+
+// 页面加载时获取背景图
+onMounted(() => {
+  loadBgImage()
+})
 
 // 老用户已有登录态时静默登录，避免重复选择头像
 onLoad(() => {
@@ -111,6 +120,10 @@ onLoad(() => {
 
 const onChooseAvatar = (e: any) => {
   const avatarUrl = e.detail.avatarUrl || ''
+  // 用户主动取消选择头像，静默忽略
+  if (e.detail.errorMessage === 'cancel' || (e.detail.errMsg && e.detail.errMsg.includes('cancel'))) {
+    return
+  }
   if (!avatarUrl) {
     showToast({ title: '请选择头像', icon: 'none' })
     return
@@ -270,7 +283,25 @@ const openAgreement = () => {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: $bg-primary;
+  position: relative;
+  /* 兜底背景色：与图片主色调接近的深色 */
+  background: #1a1a2e;
+}
+
+.login-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+}
+
+.login-header,
+.login-body,
+.login-footer {
+  position: relative;
+  z-index: 1;
 }
 
 .login-header {
@@ -307,7 +338,7 @@ const openAgreement = () => {
 
 /* Profile Card */
 .profile-card {
-  background: $bg-secondary;
+  background: rgba(0, 0, 0, 0.5);
   border-radius: $border-radius-lg;
   padding: 40rpx 30rpx;
   display: flex;
@@ -346,20 +377,27 @@ const openAgreement = () => {
   border-radius: 50%;
   padding: 0;
   margin: 0;
-  background: transparent;
-  border: none;
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none;
   overflow: visible;
+  line-height: 1;
 }
 
 .avatar-choose-btn::after {
-  border: none;
+  border: none !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
 }
 
 .avatar-preview {
   width: 160rpx;
   height: 160rpx;
   border-radius: 50%;
-  border: 2rpx solid rgba($outline-variant, 0.3);
+  border: 2rpx solid transparent;
 }
 
 .avatar-badge {
@@ -376,8 +414,22 @@ const openAgreement = () => {
   border: 4rpx solid $bg-secondary;
 }
 
+.avatar-center-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 60rpx;
+  height: 60rpx;
+  background: #000000;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .icon-plus {
-  font-size: 28rpx;
+  font-size: 36rpx;
   color: $on-primary;
   font-weight: 300;
   line-height: 1;

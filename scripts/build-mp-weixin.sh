@@ -40,15 +40,32 @@ echo "🔧 构建微信小程序版本..."
 npm run build:mp-weixin
 
 echo ""
-echo "☁️  配置云开发..."
+echo "📁 复制静态资源..."
 # 输出目录
 OUTPUT_DIR="dist/build/mp-weixin"
+
+# 显式复制 static 目录（uni-app 构建可能遗漏新增的图片等资源）
+for STATIC_SRC in "src/static" "static"; do
+    if [ -d "$STATIC_SRC" ]; then
+        mkdir -p "$OUTPUT_DIR/static"
+        cp -R "$STATIC_SRC"/* "$OUTPUT_DIR/static/"
+        echo "   - 已复制 $STATIC_SRC → $OUTPUT_DIR/static"
+        break
+    fi
+done
+
+echo ""
+echo "☁️  配置云开发..."
 
 # 复制云函数目录
 if [ -d "cloudfunctions" ]; then
     rm -rf "$OUTPUT_DIR/cloudfunctions"
     cp -r cloudfunctions "$OUTPUT_DIR/cloudfunctions"
     echo "   - 已复制云函数目录"
+
+    # 清理 macOS 资源分叉文件（如 .!95497!index.js、._index.js），避免微信开发者工具报错
+    find "$OUTPUT_DIR/cloudfunctions" -type f \( -name '.!*' -o -name '._*' -o -name '.DS_Store' \) -delete
+    echo "   - 已清理 macOS 资源分叉文件"
 
     # 将公共 utils 注入到每个云函数目录，避免云端 ../utils 路径失效
     UTILS_SRC="$OUTPUT_DIR/cloudfunctions/utils/index.js"

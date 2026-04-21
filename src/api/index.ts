@@ -19,6 +19,7 @@ import type {
   Order,
   GroupWithCreator,
   UserCouponStatus,
+  DeliveryAddress,
 } from '@/types/domain'
 
 async function callFn<T>(

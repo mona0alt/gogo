@@ -56,7 +56,7 @@ import { onLoad } from '@dcloudio/uni-app'
 import { couponApi } from '@/api/index'
 import type { UserCoupon, UserCouponStatus } from '@/types/domain'
 
-const tabs = [
+const tabs: { label: string; value: UserCouponStatus }[] = [
   { label: '未使用', value: 'unused' },
   { label: '已使用', value: 'used' },
   { label: '已过期', value: 'expired' },

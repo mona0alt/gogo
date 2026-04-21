@@ -50,7 +50,7 @@
         <switch
           :checked="form.isDefault"
           color="#c9a96e"
-          @change="form.isDefault = ($event.detail || {}).value"
+          @change="onDefaultChange"
         />
       </view>
     </view>
@@ -98,6 +98,10 @@ const onRegionChange = (e: any) => {
     form.value.city = val[1]
     form.value.district = val[2]
   }
+}
+
+const onDefaultChange = (e: any) => {
+  form.value.isDefault = e.detail?.value || false
 }
 
 const validate = () => {

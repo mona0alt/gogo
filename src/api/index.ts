@@ -141,6 +141,7 @@ export const orderApi = {
 // Group API
 export const groupApi = {
   create: (data: {
+    title?: string
     barId: string
     barName: string
     packageType: string
@@ -148,12 +149,16 @@ export const groupApi = {
     startTime: string
     endTime: string
     targetGender: number
+    people?: string
   }) => callFn<{ groupId: string }>('createGroup', data),
 
   getList: (
     params?: {
       status?: string
       barId?: string
+      packageType?: string
+      date?: string
+      people?: string
       page?: number
       pageSize?: number
       excludeOwn?: boolean

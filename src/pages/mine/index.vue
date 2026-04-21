@@ -182,7 +182,17 @@ const onBannerTap = (banner: any) => {
   }
 }
 
-const doRefresh = () => {
+const resolveCloudAvatar = async (url: string): Promise<string> => {
+  if (!url || !url.startsWith('cloud://')) return url
+  try {
+    const res = await (wx.cloud as any).getTempFileURL({ fileList: [url] })
+    return res.fileList?.[0]?.tempFileURL || url
+  } catch {
+    return url
+  }
+}
+
+const doRefresh = async () => {
   const storedUserInfo = uni.getStorageSync('userInfo')
   // eslint-disable-next-line no-console
   console.log('[mine] doRefresh', { storedUserInfo: !!storedUserInfo, userStoreInfo: !!userStore.userInfo })
@@ -193,7 +203,7 @@ const doRefresh = () => {
       isLoggedIn: true
     })
     const avatar = typeof storedUserInfo.avatar === 'string' ? storedUserInfo.avatar : ''
-    localAvatar.value = avatar || '/static/default-avatar.png'
+    localAvatar.value = (await resolveCloudAvatar(avatar)) || '/static/default-avatar.png'
     localNickname.value = typeof storedUserInfo.nickname === 'string' ? storedUserInfo.nickname : '未登录'
     localBalance.value = typeof storedUserInfo.balance === 'number' ? storedUserInfo.balance : 0
     localIsLogin.value = true
@@ -203,7 +213,7 @@ const doRefresh = () => {
   } else {
     const info = userStore.userInfo
     const avatar = info && typeof info.avatar === 'string' ? info.avatar : ''
-    localAvatar.value = avatar || '/static/default-avatar.png'
+    localAvatar.value = (await resolveCloudAvatar(avatar)) || '/static/default-avatar.png'
     localNickname.value = info && typeof info.nickname === 'string' ? info.nickname : '未登录'
     localBalance.value = info && typeof info.balance === 'number' ? info.balance : 0
     localIsLogin.value = !!info
@@ -260,7 +270,7 @@ const goToProfile = () => {
   }
 }
 
-const goToOrders = () => { uni.navigateTo({ url: '/pages/orders/index' }) }
+const goToOrders = (_status?: string) => { uni.navigateTo({ url: '/pages/orders/index' }) }
 const goToInvites = () => { uni.navigateTo({ url: '/pages/match-invites/index' }) }
 const goToMember = () => { uni.navigateTo({ url: '/pages/member/index' }) }
 const goToWineStorage = () => { uni.navigateTo({ url: '/pages/wine-storage/index' }) }

@@ -146,11 +146,11 @@ onShow(() => {
     uni.navigateTo({ url: '/pages/login/index' })
     return
   }
-  const storedUserInfo = uni.getStorageSync('userInfo')
-  if (storedUserInfo) {
-    userAvatar.value = storedUserInfo.avatar || '/static/default-avatar.png'
-    userNickname.value = storedUserInfo.nickname || '微信用户'
-    currentLevel.value = storedUserInfo.memberLevel || ''
+  const info = userStore.userInfo
+  if (info) {
+    userAvatar.value = info.avatar || '/static/default-avatar.png'
+    userNickname.value = info.nickname || '微信用户'
+    currentLevel.value = info.memberLevel || ''
   }
 })
 
@@ -180,7 +180,7 @@ const handleSubscribe = async () => {
   }
 }
 
-const processPayment = async () => {
+const processPayment = async (_plan?: Record<string, unknown>) => {
   submitting.value = true
   try {
     // TODO: 接入实际的会员购买云函数
@@ -192,10 +192,12 @@ const processPayment = async () => {
     await new Promise((resolve: any) => setTimeout(resolve, 1000))
 
     // 模拟支付成功，更新本地用户状态
-    const storedUserInfo = uni.getStorageSync('userInfo') || {}
-    storedUserInfo.memberLevel = selectedPlan.value
-    storedUserInfo.memberExpireAt = Date.now() + 30 * 24 * 60 * 60 * 1000
-    uni.setStorageSync('userInfo', storedUserInfo)
+    const updatedInfo = userStore.userInfo
+      ? { ...userStore.userInfo, memberLevel: selectedPlan.value as 'vip' | 'svip' }
+      : null
+    if (updatedInfo) {
+      userStore.$patch({ userInfo: updatedInfo })
+    }
     currentLevel.value = selectedPlan.value
 
     showToast({ title: '开通成功', icon: 'success' })

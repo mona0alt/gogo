@@ -57,6 +57,7 @@ const noMore = ref(false)
 const refreshing = ref(false)
 const page = ref(1)
 const pageSize = 20
+const unfollowing = ref(false)
 
 const fetchList = async () => {
   if (loading.value || noMore.value) return
@@ -97,18 +98,27 @@ const onLoadMore = () => {
 }
 
 const unfollow = async (openid: any, index: any) => {
-  const res = await showModal({
-    title: '取消关注',
-    content: '确定要取消关注该用户吗？',
-  })
-  if (res.confirm) {
-    try {
-      await callCloudFunction('unfollowUser', { targetOpenid: openid })
-      followList.value.splice(index, 1)
-      showToast({ title: '已取消关注', icon: 'none' })
-    } catch {
-      showToast({ title: '操作失败', icon: 'none' })
+  if (unfollowing.value) return
+  unfollowing.value = true
+  try {
+    const res = await showModal({
+      title: '取消关注',
+      content: '确定要取消关注该用户吗？',
+    })
+    if (res.confirm) {
+      try {
+        await callCloudFunction('unfollowUser', { targetOpenid: openid })
+        followList.value = followList.value.filter((_, i) => i !== index)
+        showToast({ title: '已取消关注', icon: 'none' })
+      } catch {
+        showToast({ title: '操作失败', icon: 'none' })
+      }
     }
+  } catch (err: any) {
+    // eslint-disable-next-line no-console
+    console.error('[following] unfollow error:', err)
+  } finally {
+    unfollowing.value = false
   }
 }
 

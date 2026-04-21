@@ -39,7 +39,7 @@
           <view class="form-card selectable" @tap="onSelectBar">
             <text class="form-label">预约酒吧</text>
             <view class="select-row">
-              <text class="select-value">{{ form.bar || '请选择' }}</text>
+              <text class="select-value">{{ form.barName || '请选择' }}</text>
               <text class="select-arrow">›</text>
             </view>
           </view>
@@ -55,7 +55,7 @@
           <view class="form-card selectable" @tap="onSelectTime">
             <text class="form-label">预约时间</text>
             <view class="select-row">
-              <text class="select-value">{{ form.time || '请选择' }}</text>
+              <text class="select-value">{{ form.date || '请选择' }}</text>
               <text class="select-arrow">📅</text>
             </view>
           </view>
@@ -95,9 +95,9 @@
 
     <!-- Bottom Action -->
     <view class="bottom-action">
-      <view class="submit-btn" @tap="onSubmit">
-        <text class="submit-text">开启拼团</text>
-        <text class="submit-icon">⚡</text>
+      <view class="submit-btn" :class="{ disabled: submitting }" @tap="onSubmit">
+        <text class="submit-text">{{ submitting ? '发布中...' : '开启拼团' }}</text>
+        <text v-if="!submitting" class="submit-icon">⚡</text>
       </view>
     </view>
   </view>
@@ -107,14 +107,19 @@
 import { showToast } from '@/utils/feedback'
 import { ref, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
+import { groupApi } from '@/api/index'
 
 const userStore = useUserStore()
+const submitting = ref(false)
 
 const form = ref({
   title: '',
-  bar: '',
+  barId: '',
+  barName: '',
   packageType: '畅饮套餐',
-  time: '',
+  date: '',
+  startTime: '',
+  endTime: '',
   groupType: '多人',
   size: '3男3女'
 })
@@ -142,15 +147,33 @@ const onSelectType = () => {
   showToast({ title: '选择类型', icon: 'none' })
 }
 
-const onSubmit = () => {
+const onSubmit = async () => {
   if (!form.value.title.trim()) {
     showToast({ title: '请输入拼团标题', icon: 'none' })
     return
   }
-  showToast({ title: '发布成功', icon: 'success' })
-  setTimeout(() => {
-    uni.navigateBack()
-  }, 800)
+  if (submitting.value) return
+  submitting.value = true
+  try {
+    await groupApi.create({
+      title: form.value.title,
+      barId: form.value.barId || 'default',
+      barName: form.value.barName || form.value.barId || '未知酒吧',
+      packageType: form.value.packageType,
+      date: form.value.date || new Date().toISOString().split('T')[0],
+      startTime: form.value.startTime || '20:00',
+      endTime: form.value.endTime || '23:00',
+      targetGender: 0,
+    })
+    showToast({ title: '发布成功', icon: 'success' })
+    setTimeout(() => {
+      uni.navigateBack()
+    }, 800)
+  } catch {
+    showToast({ title: '发布失败', icon: 'none' })
+  } finally {
+    submitting.value = false
+  }
 }
 </script>
 
@@ -431,6 +454,11 @@ const onSubmit = () => {
 
 .submit-btn:active {
   transform: scale(0.95);
+}
+
+.submit-btn.disabled {
+  opacity: 0.6;
+  pointer-events: none;
 }
 
 .submit-text {

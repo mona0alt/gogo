@@ -48,7 +48,10 @@
       "indexes": [
         { "name": "status_creator", "fields": ["status", "creatorOpenid"] },
         { "name": "status_createdAt", "fields": ["status", "createdAt"] },
-        { "name": "creatorOpenid_status", "fields": ["creatorOpenid", "status"] }
+        { "name": "creatorOpenid_status", "fields": ["creatorOpenid", "status"] },
+        { "name": "status_barId", "fields": ["status", "barId"] },
+        { "name": "status_packageType", "fields": ["status", "packageType"] },
+        { "name": "status_date", "fields": ["status", "date"] }
       ]
     },
     {

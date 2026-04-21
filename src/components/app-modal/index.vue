@@ -23,7 +23,7 @@ const onConfirm = () => {
 </script>
 
 <template>
-  <view v-show="store.modal.visible" class="modal" @click="onMaskClick">
+  <view v-if="store.modal.visible" class="modal" @click="onMaskClick">
     <view class="modal__card" @click.stop>
       <view v-if="store.modal.title" class="modal__title">{{ store.modal.title }}</view>
       <view v-if="store.modal.content" class="modal__content">{{ store.modal.content }}</view>
@@ -45,7 +45,6 @@ const onConfirm = () => {
 
 <style lang="scss" scoped>
 .modal {
-  &[hidden] { display: none !important; }
   position: fixed;
   top: 0;
   left: 0;

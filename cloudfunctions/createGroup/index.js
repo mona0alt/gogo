@@ -1,16 +1,18 @@
 const { createHandler, success, fail } = require('../utils')
 
 const schema = {
+  title: { required: true, type: 'string' },
   barId: { required: true, type: 'string' },
   barName: { required: true, type: 'string' },
   packageType: { required: true, type: 'string' },
   date: { required: true, type: 'string' },
   startTime: { required: true, type: 'string' },
-  endTime: { required: true, type: 'string' }
+  endTime: { required: true, type: 'string' },
+  people: { required: false, type: 'string' }
 }
 
 exports.main = createHandler({ schema, requireUser: false }, async (event, context, { db, openid, _ }) => {
-  const { targetGender, barId, barName, packageType, date, startTime, endTime } = event
+  const { title, targetGender, barId, barName, packageType, date, startTime, endTime, people } = event
 
   // 检查是否已有进行中的拼团
   const activeGroups = await db.collection('groups')
@@ -27,6 +29,7 @@ exports.main = createHandler({ schema, requireUser: false }, async (event, conte
   const now = new Date()
   const group = {
     creatorOpenid: openid,
+    title: title || '',
     targetGender: Number(targetGender) || 0,
     barId,
     barName,
@@ -34,6 +37,7 @@ exports.main = createHandler({ schema, requireUser: false }, async (event, conte
     date,
     startTime,
     endTime,
+    people: people || '',
     status: 'matching',
     matchedUserOpenid: '',
     createdAt: now,

@@ -13,20 +13,20 @@
       <!-- Filters -->
       <view class="filters-section">
         <view class="filter-grid">
-          <view class="filter-item" @tap="onFilterBar">
-            <text class="filter-label">选择酒吧</text>
+          <view class="filter-item" :class="{ active: filters.barId }" @tap="onFilterBar">
+            <text class="filter-label">{{ filters.barName }}</text>
             <text class="filter-arrow">▼</text>
           </view>
-          <view class="filter-item" @tap="onFilterPackage">
-            <text class="filter-label">套餐类型</text>
+          <view class="filter-item" :class="{ active: filters.packageType }" @tap="onFilterPackage">
+            <text class="filter-label">{{ filters.packageTypeName }}</text>
             <text class="filter-arrow">▼</text>
           </view>
-          <view class="filter-item" @tap="onFilterPeople">
-            <text class="filter-label">人数限制</text>
+          <view class="filter-item" :class="{ active: filters.people }" @tap="onFilterPeople">
+            <text class="filter-label">{{ filters.peopleName }}</text>
             <text class="filter-arrow">▼</text>
           </view>
-          <view class="filter-item" @tap="onFilterTime">
-            <text class="filter-label">预定时间</text>
+          <view class="filter-item" :class="{ active: filters.date }" @tap="onFilterTime">
+            <text class="filter-label">{{ filters.dateName }}</text>
             <text class="filter-arrow">▼</text>
           </view>
         </view>
@@ -114,6 +114,19 @@
         </view>
       </view>
 
+      <!-- Loading / Empty / No More -->
+      <view v-if="loading && groupList.length === 0" class="loading">
+        <text>加载中...</text>
+      </view>
+      <view v-if="!loading && groupList.length === 0" class="empty-state">
+        <text class="empty-icon">&#x1F378;</text>
+        <text class="empty-title">暂无拼桌</text>
+        <text class="empty-desc">点击右下角发布按钮，创建你的拼桌活动</text>
+      </view>
+      <view v-if="noMore && groupList.length > 0" class="no-more">
+        <text>没有更多了</text>
+      </view>
+
       <view style="height: 160rpx;"></view>
     </scroll-view>
 
@@ -127,44 +140,117 @@
 
 <script setup lang="ts">
 import { showToast } from '@/utils/feedback'
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
+import { callCloudFunction } from '@/utils/request'
+import { groupApi, barApi } from '@/api/index'
+import type { GroupWithCreator } from '@/types/domain'
 
 const userStore = useUserStore()
 
-const groupList = ref([
-  {
-    title: '来两个男生，明天晚上一起喝酒，气氛组已到位',
-    time: '18:00',
-    barName: 'PHX Bar 菲尼克斯',
-    people: '3男3女',
-    avatars: ['/static/default-avatar.png', '/static/default-avatar.png']
-  },
-  {
-    title: '周末万圣节派对，差两个高颜值小姐姐',
-    time: '21:30',
-    barName: 'SPACE PLUS',
-    people: '4男2女',
-    avatars: ['/static/default-avatar.png']
-  },
-  {
-    title: '周五微醺局，寻找有趣的灵魂',
-    time: '20:00',
-    barName: 'MUSE 酒吧',
-    people: '2男4女',
-    avatars: ['/static/default-avatar.png', '/static/default-avatar.png', '/static/default-avatar.png']
-  }
-])
+interface DisplayGroup {
+  _id: string
+  title: string
+  time: string
+  barName: string
+  people: string
+  avatars: string[]
+}
 
-const featuredItem = ref({
-  title: '豪华卡座拼桌中',
-  barName: 'Master Room',
-  time: '22:00',
-  people: '6人'
+const groupList = ref<DisplayGroup[]>([])
+const loading = ref(false)
+const noMore = ref(false)
+const page = ref(1)
+const pageSize = 20
+
+const barList = ref<{ id: string; name: string }[]>([])
+
+const filters = ref({
+  barId: '',
+  barName: '选择酒吧',
+  packageType: '',
+  packageTypeName: '套餐类型',
+  people: '',
+  peopleName: '人数限制',
+  date: '',
+  dateName: '预定时间'
 })
 
-const onCardTap = () => {
-  uni.navigateTo({ url: '/pages/hall-detail/index' })
+const packageOptions = ['全部', '畅饮套餐', '酒水套餐', '小吃套餐', 'VIP套餐']
+const peopleOptions = ['全部', '2人', '4人', '6人', '8人+']
+const dateOptions = ['全部', '今天', '明天', '后天']
+
+const formatGroup = (group: GroupWithCreator): DisplayGroup => {
+  const creatorAvatar = group.creatorInfo?.avatar || '/static/default-avatar.png'
+  return {
+    _id: group._id,
+    title: group.title || `${group.barName} · ${group.packageType}`,
+    time: group.startTime || '',
+    barName: group.barName || '',
+    people: group.people || '不限人数',
+    avatars: [creatorAvatar]
+  }
+}
+
+const fetchBarList = async () => {
+  try {
+    const res = await barApi.getList({ page: 1, pageSize: 100 })
+    barList.value = res.list.map((b) => ({ id: b.id, name: b.name }))
+  } catch {
+    // ignore
+  }
+}
+
+const fetchGroupList = async (reset = false) => {
+  if (loading.value || (noMore.value && !reset)) return
+  loading.value = true
+  if (reset) {
+    page.value = 1
+    noMore.value = false
+  }
+  try {
+    const params: Record<string, unknown> = {
+      status: 'matching',
+      page: page.value,
+      pageSize
+    }
+    if (filters.value.barId) params.barId = filters.value.barId
+    if (filters.value.packageType) params.packageType = filters.value.packageType
+    if (filters.value.date) params.date = filters.value.date
+    if (filters.value.people) params.people = filters.value.people
+
+    const res = await groupApi.getList(params)
+    const list = (res.list || []).map(formatGroup)
+    if (page.value === 1) {
+      groupList.value = list
+    } else {
+      groupList.value.push(...list)
+    }
+    if (list.length < pageSize) {
+      noMore.value = true
+    }
+  } catch {
+    showToast({ title: '加载失败', icon: 'none' })
+  } finally {
+    loading.value = false
+  }
+}
+
+const featuredItem = ref<DisplayGroup>({
+  _id: '',
+  title: '豪华卡座拼桌中',
+  time: '22:00',
+  barName: 'Master Room',
+  people: '6人',
+  avatars: ['/static/default-avatar.png']
+})
+
+const onCardTap = (item?: DisplayGroup) => {
+  if (item?._id) {
+    uni.navigateTo({ url: `/pages/hall-detail/index?id=${item._id}` })
+  } else {
+    uni.navigateTo({ url: '/pages/hall-detail/index' })
+  }
 }
 
 const onPublish = () => {
@@ -176,16 +262,81 @@ const onSettings = () => {
 }
 
 const onFilterBar = () => {
-  showToast({ title: '筛选酒吧', icon: 'none' })
+  const bars = ['全部', ...barList.value.map((b) => b.name)]
+  uni.showActionSheet({
+    itemList: bars,
+    success: (res) => {
+      const idx = res.tapIndex
+      if (idx === 0) {
+        filters.value.barId = ''
+        filters.value.barName = '选择酒吧'
+      } else {
+        const bar = barList.value[idx - 1]
+        filters.value.barId = bar.id
+        filters.value.barName = bar.name
+      }
+      fetchGroupList(true)
+    }
+  })
 }
+
 const onFilterPackage = () => {
-  showToast({ title: '筛选套餐', icon: 'none' })
+  uni.showActionSheet({
+    itemList: packageOptions,
+    success: (res) => {
+      const val = packageOptions[res.tapIndex]
+      if (val === '全部') {
+        filters.value.packageType = ''
+        filters.value.packageTypeName = '套餐类型'
+      } else {
+        filters.value.packageType = val
+        filters.value.packageTypeName = val
+      }
+      fetchGroupList(true)
+    }
+  })
 }
+
 const onFilterPeople = () => {
-  showToast({ title: '筛选人数', icon: 'none' })
+  uni.showActionSheet({
+    itemList: peopleOptions,
+    success: (res) => {
+      const val = peopleOptions[res.tapIndex]
+      if (val === '全部') {
+        filters.value.people = ''
+        filters.value.peopleName = '人数限制'
+      } else {
+        filters.value.people = val
+        filters.value.peopleName = val
+      }
+      fetchGroupList(true)
+    }
+  })
 }
+
 const onFilterTime = () => {
-  showToast({ title: '筛选时间', icon: 'none' })
+  const today = new Date()
+  const format = (d: Date) => {
+    const y = d.getFullYear()
+    const m = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    return `${y}-${m}-${day}`
+  }
+  const dates = ['', format(today), format(new Date(today.getTime() + 86400000)), format(new Date(today.getTime() + 172800000))]
+  uni.showActionSheet({
+    itemList: dateOptions,
+    success: (res) => {
+      const idx = res.tapIndex
+      if (idx === 0) {
+        filters.value.date = ''
+        filters.value.dateName = '预定时间'
+      } else {
+        filters.value.date = dates[idx]
+        filters.value.dateName = dateOptions[idx]
+      }
+      fetchGroupList(true)
+    }
+  })
 }
 
 const navAvatarError = () => {
@@ -193,8 +344,15 @@ const navAvatarError = () => {
 }
 
 const onLoadMore = () => {
-  // TODO: load more
+  if (loading.value || noMore.value) return
+  page.value++
+  fetchGroupList()
 }
+
+onMounted(() => {
+  fetchBarList()
+  fetchGroupList(true)
+})
 </script>
 
 <style lang="scss" scoped>
@@ -281,9 +439,52 @@ const onLoadMore = () => {
   color: $text-secondary;
 }
 
+.filter-item.active {
+  border-color: rgba($primary, 0.4);
+  background: rgba($primary, 0.08);
+}
+
+.filter-item.active .filter-label {
+  color: $primary;
+}
+
 .filter-arrow {
   font-size: 20rpx;
   color: $primary;
+}
+
+/* Loading / Empty / No More */
+.loading, .no-more {
+  text-align: center;
+  padding: 40rpx;
+  color: $text-secondary;
+  font-size: 24rpx;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 120rpx 60rpx;
+  gap: 20rpx;
+}
+
+.empty-icon {
+  font-size: 80rpx;
+  color: rgba($outline-variant, 0.3);
+}
+
+.empty-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: $text-primary;
+}
+
+.empty-desc {
+  font-size: 24rpx;
+  color: $text-secondary;
+  text-align: center;
+  line-height: 1.6;
 }
 
 /* VIP Card */

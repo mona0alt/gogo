@@ -13,8 +13,8 @@ export function useTabBarShowRefresh(delay = 500) {
     ready.value = false
 
     await new Promise<void>((resolve) => {
-      timer = setTimeout(() => {
-        fn?.()
+      timer = setTimeout(async () => {
+        await fn?.()
         ready.value = true
         timer = null
         resolve()

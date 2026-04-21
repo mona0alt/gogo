@@ -4,12 +4,15 @@ exports.main = async (event, context) => {
   const { db, openid } = init()
   const _ = db.command
 
-  const { status, barId, page = 1, pageSize = 20 } = event
+  const { status, barId, packageType, date, people, page = 1, pageSize = 20 } = event
   const limit = Math.min(Number(pageSize) || 20, 100)
 
   const where = {}
   if (status) where.status = status
   if (barId) where.barId = barId
+  if (packageType) where.packageType = packageType
+  if (date) where.date = date
+  if (people) where.people = people
 
   // Exclude user's own groups from public list unless explicitly querying own groups
   if (event.excludeOwn !== false && openid) {

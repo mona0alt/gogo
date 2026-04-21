@@ -100,6 +100,7 @@ export interface Order {
 export interface Group {
   _id: string
   creatorOpenid: string
+  title?: string
   targetGender: number
   barId: string
   barName: string
@@ -107,6 +108,7 @@ export interface Group {
   date: string
   startTime: string
   endTime: string
+  people?: string
   status: 'matching' | 'paired' | 'cancelled'
   matchedUserOpenid?: string
   createdAt: Date

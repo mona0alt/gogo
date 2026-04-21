@@ -4,7 +4,8 @@ export class CloudFunctionError extends Error {
   constructor(
     message: string,
     public readonly functionName: string,
-    public readonly originalError?: unknown
+    public readonly originalError?: unknown,
+    public readonly result?: Record<string, unknown>
   ) {
     super(message)
     this.name = 'CloudFunctionError'
@@ -26,7 +27,9 @@ export const callCloudFunction = async <T = any>(
             reject(
               new CloudFunctionError(
                 (result.error as string) || '云函数业务错误',
-                name
+                name,
+                undefined,
+                result as Record<string, unknown>
               )
             )
           } else {

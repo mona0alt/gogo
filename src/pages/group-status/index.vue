@@ -2,8 +2,8 @@
   <view class="status-page">
     <!-- Top Navigation -->
     <view class="top-nav">
-      <view class="nav-left">
-        <text class="nav-menu">&#9776;</text>
+      <view class="nav-left" @tap="onBack">
+        <text class="nav-back">&#x2190;</text>
       </view>
       <text class="nav-title">客服消息</text>
       <view class="nav-right">
@@ -107,7 +107,7 @@
 <script setup lang="ts">
 import { showToast } from '@/utils/feedback'
 import { ref, onMounted } from 'vue'
-import { onShow } from '@dcloudio/uni-app'
+import { onLoad, onShow } from '@dcloudio/uni-app'
 import { useUserStore } from '@/stores/user'
 import { callCloudFunction } from '@/utils/request'
 import { resolveCloudAvatar } from '@/utils/cloud'
@@ -133,8 +133,16 @@ const refreshNavAvatar = async () => {
   navAvatar.value = url ? await resolveCloudAvatar(url) : '/static/default-avatar.png'
 }
 
+onLoad((options: any) => {
+  if (options?.groupId) {
+    groupId.value = options.groupId
+    uni.setStorageSync('currentGroupId', options.groupId)
+  }
+})
+
 onShow(() => {
   refreshNavAvatar()
+  fetchGroupStatus()
 })
 
 const formatTime = (date: any) => {
@@ -170,12 +178,15 @@ const onPay = () => {
   // TODO: Implement payment flow
 }
 
+const onBack = () => {
+  uni.navigateBack()
+}
+
 onMounted(() => {
   if (!userStore.isLoggedIn) {
     uni.navigateTo({ url: '/pages/login/index' })
     return
   }
-  fetchGroupStatus()
 })
 </script>
 
@@ -208,8 +219,8 @@ onMounted(() => {
   width: 80rpx;
 }
 
-.nav-menu {
-  font-size: 28rpx;
+.nav-back {
+  font-size: 36rpx;
   color: $primary;
 }
 

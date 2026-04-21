@@ -23,7 +23,7 @@ exports.main = createHandler({ schema, requireUser: false }, async (event, conte
     .get()
 
   if (activeGroups.data.length > 0) {
-    return fail('您已有一个进行中的拼团，请先处理')
+    return fail('您已有一个进行中的拼团，请先处理', { groupId: activeGroups.data[0]._id })
   }
 
   const now = new Date()

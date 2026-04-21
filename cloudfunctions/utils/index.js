@@ -11,8 +11,8 @@ function success(data = {}) {
   return { success: true, ...data }
 }
 
-function fail(message) {
-  return { success: false, error: message }
+function fail(message, data = {}) {
+  return { success: false, error: message, ...data }
 }
 
 function unauthorized() {

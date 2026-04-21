@@ -234,7 +234,8 @@ const onNext = async () => {
         confirmText: '去查看',
       })
       if (confirm) {
-        uni.navigateTo({ url: ROUTES.GROUP_STATUS })
+        const gid = e.result?.groupId || uni.getStorageSync('currentGroupId')
+        uni.navigateTo({ url: gid ? `${ROUTES.GROUP_STATUS}?groupId=${gid}` : ROUTES.GROUP_STATUS })
       }
     } else {
       showToast({ title: msg, icon: 'none', duration: 3000 })
